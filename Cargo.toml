@@ -1,0 +1,20 @@
+[package]
+name = "microservice"
+version = "0.1.0"
+authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
+edition = "2018"
+
+[dependencies]
+actix-web = "1.0.7"
+bytes = "0.4"
+diesel = { version = "1.4", features = ["postgres", "chrono"] }
+chrono = { version = "0.4", features = ["serde"] }
+futures = "0.1"
+log = "0.4"
+num_cpus = "1"
+r2d2-diesel = "1.0"
+r2d2 = "0.8"
+jsonwebtoken = "6"
+serde = "1.0"
+serde_derive = "1.0"
+validator = "0.9"
