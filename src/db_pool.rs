@@ -3,7 +3,13 @@ use ::r2d2::{self, Error};
 use ::r2d2_diesel::ConnectionManager;
 use ::std::env;
 
+use super::threads::num_threads;
+
 pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
+
+pub fn init_default_pool() -> Result<Pool, Error> {
+    init_pool(num_threads())
+}
 
 pub fn init_pool(size: usize) -> Result<Pool, Error> {
     let manager = ConnectionManager::<PgConnection>::new(database_url());

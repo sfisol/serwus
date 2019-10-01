@@ -6,6 +6,7 @@ pub mod auth;
 pub mod containers;
 pub mod db_pool;
 pub mod email;
+pub mod server;
 pub mod return_logged;
 pub mod role;
 pub mod threads;
