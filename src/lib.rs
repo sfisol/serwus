@@ -10,5 +10,6 @@ pub mod return_logged;
 pub mod role;
 pub mod threads;
 pub mod validation;
+pub mod pagination;
 
 mod string_utils;
