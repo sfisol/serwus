@@ -32,7 +32,7 @@ impl<T> Paginated<T> {
         Paginated { per_page, ..self }
     }
 
-    pub fn load_and_count_pages<U>(self, conn: &PgConnection) -> QueryResult<(Vec<U>, i64)>
+    pub fn load_and_count_pages<U>(self, conn: &PgConnection) -> QueryResult<(Vec<U>, i64, i64)>
     where
         Self: LoadQuery<PgConnection, (U, i64)>,
     {
@@ -41,7 +41,7 @@ impl<T> Paginated<T> {
         let total = results.get(0).map(|x| x.1).unwrap_or(0);
         let records = results.into_iter().map(|x| x.0).collect();
         let total_pages = (total as f64 / per_page as f64).ceil() as i64;
-        Ok((records, total_pages))
+        Ok((records, total, total_pages))
     }
 }
 
