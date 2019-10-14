@@ -17,19 +17,27 @@ use ::dotenv::dotenv;
 use ::env_logger;
 
 use super::threads;
+#[cfg(feature = "pgsql")]
 use super::db_pool;
 
 #[derive(Clone)]
 pub struct DefaultAppData {
+    #[cfg(feature = "pgsql")]
     pub db_pool: db_pool::Pool,
 }
 
+#[cfg(feature = "pgsql")]
 pub fn default_app_data() -> DefaultAppData {
     // FIXME: Create Pool as Actix Actor
     info!("Connecting to database");
     let db_pool = db_pool::init_default_pool().unwrap();
 
     DefaultAppData { db_pool }
+}
+
+#[cfg(not(feature = "pgsql"))]
+pub fn default_app_data() -> DefaultAppData {
+    DefaultAppData { }
 }
 
 pub fn start<T: 'static + Clone + Send, F>

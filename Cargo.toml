@@ -4,21 +4,25 @@ version = "0.1.0"
 authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
 edition = "2018"
 
+[features]
+default = ["pgsql"]
+pgsql = ["diesel", "r2d2", "r2d2-diesel", "chrono"]
+
 [dependencies]
 actix-cors = "0.1"
 actix-rt = "0.2"
 actix-web = "1.0.7"
 bytes = "0.4"
-chrono = { version = "0.4", features = ["serde"] }
-diesel = { version = "1.4", features = ["postgres", "chrono"] }
+chrono = { version = "0.4", features = ["serde"], optional = true }
+diesel = { version = "1.4", features = ["postgres", "chrono"], optional = true }
 dotenv = "0.14"
 env_logger = "0.7"
 futures = "0.1"
 jsonwebtoken = "6"
 log = "0.4"
 num_cpus = "1"
-r2d2-diesel = "1.0"
-r2d2 = "0.8"
+r2d2-diesel = { version = "1.0", optional = true }
+r2d2 = { version = "0.8", optional = true }
 serde = "1.0"
 serde_derive = "1.0"
 validator = "0.9"
