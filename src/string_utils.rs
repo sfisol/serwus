@@ -7,7 +7,7 @@ pub fn to_camel_case(convertable_string: &str) -> String {
     let mut found_real_char: bool = false;
     let mut result: String = String::with_capacity(convertable_string.len() * 2);
     for character in trim_right(convertable_string).chars() {
-        if char_is_seperator(&character) && found_real_char {
+        if char_is_seperator(character) && found_real_char {
             new_word = true;
         } else if !found_real_char && is_not_alphanumeric(character) {
             continue;
@@ -33,8 +33,8 @@ fn trim_right(convertable_string: &str) -> &str {
     convertable_string.trim_end_matches(is_not_alphanumeric)
 }
 
-fn char_is_seperator(character: &char) -> bool {
-    is_not_alphanumeric(*character)
+fn char_is_seperator(character: char) -> bool {
+    is_not_alphanumeric(character)
 }
 
 fn is_not_alphanumeric(character: char) -> bool {

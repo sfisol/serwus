@@ -10,8 +10,10 @@ pgsql = ["diesel", "r2d2", "r2d2-diesel", "chrono"]
 
 [dependencies]
 actix-cors = "0.1"
+actix-http = "0.2.10"
 actix-rt = "0.2"
-actix-web = "1.0.7"
+actix-service = "0.4"
+actix-web = "1.0.8"
 bytes = "0.4"
 chrono = { version = "0.4", features = ["serde"], optional = true }
 diesel = { version = "1.4", features = ["postgres", "chrono"], optional = true }

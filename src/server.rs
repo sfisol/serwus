@@ -7,12 +7,15 @@
 )]
 #![allow(clippy::single_match_else)]
 
-use ::actix_rt;
-use ::actix_web::{
-    http, web, App, HttpServer,
-    middleware::Logger,
-};
 use ::actix_cors::Cors;
+use actix_http::{body::Body, Request, Error};
+use ::actix_rt;
+use ::actix_service::Service;
+use ::actix_web::{
+    App, http, HttpServer, test, web,
+    middleware::Logger,
+    dev::ServiceResponse,
+};
 use ::dotenv::dotenv;
 use ::env_logger;
 
@@ -40,7 +43,7 @@ pub fn default_app_data() -> DefaultAppData {
     DefaultAppData { }
 }
 
-pub fn start<T: 'static + Clone + Send, F>
+pub fn start<T, F>
 (
     name: &str,
     prepare_app_data: impl Fn() -> T,
@@ -48,7 +51,9 @@ pub fn start<T: 'static + Clone + Send, F>
     app_port: &str,
     custom_allowed_methods: Option<Vec<&'static str>>,
 )
-where F: Fn(&mut web::ServiceConfig) + Send + Clone + Copy + 'static
+where
+    T: 'static + Clone + Send,
+    F: Fn(&mut web::ServiceConfig) + Send + Clone + Copy + 'static
 {
     dotenv().ok();
     //env::set_var("RUST_LOG", "actix_web=debug");
@@ -85,4 +90,18 @@ where F: Fn(&mut web::ServiceConfig) + Send + Clone + Copy + 'static
     info!("Activating actix event loop");
     let _ = sys.run();
 
+}
+
+pub fn test_init<T, F>(prepare_app_data: impl Fn() -> T, configure_app: F) -> impl Service<Request = Request, Response = ServiceResponse<Body>, Error = Error>
+where
+    T: 'static,
+    F: Fn(&mut web::ServiceConfig),
+{
+    let app_data = test::run_on(|| prepare_app_data());
+
+    test::init_service(
+        App::new()
+            .data(app_data)
+            .configure(configure_app)
+    )
 }

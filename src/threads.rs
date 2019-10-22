@@ -9,7 +9,7 @@ pub fn num_threads() -> usize {
     };
 
     if num_cpus < 2 {
-        return 2
+        2
     } else {
         num_cpus
     }
