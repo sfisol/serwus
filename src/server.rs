@@ -12,12 +12,17 @@ use actix_http::{body::Body, Request, Error};
 use ::actix_rt;
 use ::actix_service::Service;
 use ::actix_web::{
-    App, http, HttpServer, test, web,
+    App, http, HttpServer, test,
     middleware::Logger,
     dev::ServiceResponse,
 };
 use ::dotenv::dotenv;
 use ::env_logger;
+
+#[cfg(feature = "swagger")]
+use paperclip::actix::{web, OpenApiExt};
+#[cfg(not(feature = "swagger"))]
+use actix_web::web;
 
 use super::threads;
 #[cfg(feature = "pgsql")]
@@ -68,8 +73,14 @@ where
     let app_data = prepare_app_data();
 
     info!("Starting HTTP server");
-    HttpServer::new(move ||
-        App::new()
+    HttpServer::new(move || {
+        let app = App::new();
+
+        #[cfg(feature = "swagger")]
+        let app = app.wrap_api()
+            .with_json_spec_at("/spec");
+
+        let app = app
             .data(app_data.clone())
             .configure(configure_app)
             .wrap(Logger::default())
@@ -80,8 +91,13 @@ where
                     .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
                     .allowed_header(http::header::CONTENT_TYPE)
                     .max_age(3600)
-            )
-    )
+            );
+
+            #[cfg(feature = "swagger")]
+            let app = app.build();
+
+            app
+    })
     .workers(numthreads)
     .bind(format!("0.0.0.0:{}", app_port))
     .expect("Can't bind")
@@ -99,9 +115,19 @@ where
 {
     let app_data = test::run_on(|| prepare_app_data());
 
-    test::init_service(
-        App::new()
+    test::init_service({
+        let app = App::new();
+
+        #[cfg(feature = "swagger")]
+        let app = app.wrap_api();
+
+        let app = app
             .data(app_data)
-            .configure(configure_app)
-    )
+            .configure(configure_app);
+
+        #[cfg(feature = "swagger")]
+        let app = app.build();
+
+        app
+    })
 }
