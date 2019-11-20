@@ -48,17 +48,18 @@ pub fn default_app_data() -> DefaultAppData {
     DefaultAppData { }
 }
 
-pub fn start<T, F>
+pub fn start<T, F, C>
 (
     name: &str,
     prepare_app_data: impl Fn() -> T,
     configure_app: F,
     app_port: &str,
-    custom_allowed_methods: Option<Vec<&'static str>>,
+    cors_factory: Option<C>,
 )
 where
     T: 'static + Clone + Send,
-    F: Fn(&mut web::ServiceConfig) + Send + Clone + Copy + 'static
+    F: Fn(&mut web::ServiceConfig) + Send + Clone + Copy + 'static,
+    C: Fn() -> Cors + Send + Clone + 'static
 {
     dotenv().ok();
     //env::set_var("RUST_LOG", "actix_web=debug");
@@ -71,6 +72,14 @@ where
     let sys = actix_rt::System::new(name);
 
     let app_data = prepare_app_data();
+
+    let default_cors_factory = || -> Cors {
+        Cors::new()
+            .send_wildcard()
+            .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+            .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT, http::header::CONTENT_TYPE])
+            .max_age(3600)
+    };
 
     info!("Starting HTTP server");
     HttpServer::new(move || {
@@ -85,12 +94,11 @@ where
             .configure(configure_app)
             .wrap(Logger::default())
             .wrap(
-                Cors::new()
-                    .send_wildcard()
-                    .allowed_methods(custom_allowed_methods.clone().unwrap_or_else(|| vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"]))
-                    .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
-                    .allowed_header(http::header::CONTENT_TYPE)
-                    .max_age(3600)
+                if let Some(ref cors_factory) = cors_factory {
+                    cors_factory()
+                } else {
+                    default_cors_factory()
+                }
             );
 
             #[cfg(feature = "swagger")]
