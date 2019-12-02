@@ -8,7 +8,8 @@ use super::threads::num_threads;
 pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
 pub fn init_default_pool() -> Result<Pool, Error> {
-    init_pool(num_threads())
+    let nthreads = num_threads();
+    init_pool(if nthreads > 1 { nthreads } else { 2 })
 }
 
 pub fn init_pool(size: usize) -> Result<Pool, Error> {

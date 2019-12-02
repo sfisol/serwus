@@ -48,13 +48,35 @@ pub fn default_app_data() -> DefaultAppData {
     DefaultAppData { }
 }
 
-pub fn start<T, F, C>
+fn default_cors_factory() -> Cors {
+    Cors::new()
+        .send_wildcard()
+        .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+        .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT, http::header::CONTENT_TYPE])
+        .max_age(3600)
+}
+
+pub fn start<T, F>
 (
     name: &str,
     prepare_app_data: impl Fn() -> T,
     configure_app: F,
     app_port: &str,
-    cors_factory: Option<C>,
+)
+where
+    T: 'static + Clone + Send,
+    F: Fn(&mut web::ServiceConfig) + Send + Clone + Copy + 'static,
+{
+    start_with_cors(name, prepare_app_data, configure_app, app_port, default_cors_factory)
+}
+
+pub fn start_with_cors<T, F, C>
+(
+    name: &str,
+    prepare_app_data: impl Fn() -> T,
+    configure_app: F,
+    app_port: &str,
+    cors_factory: C,
 )
 where
     T: 'static + Clone + Send,
@@ -73,14 +95,6 @@ where
 
     let app_data = prepare_app_data();
 
-    let default_cors_factory = || -> Cors {
-        Cors::new()
-            .send_wildcard()
-            .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"])
-            .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT, http::header::CONTENT_TYPE])
-            .max_age(3600)
-    };
-
     info!("Starting HTTP server");
     HttpServer::new(move || {
         let app = App::new();
@@ -93,13 +107,7 @@ where
             .data(app_data.clone())
             .configure(configure_app)
             .wrap(Logger::default())
-            .wrap(
-                if let Some(ref cors_factory) = cors_factory {
-                    cors_factory()
-                } else {
-                    default_cors_factory()
-                }
-            );
+            .wrap(cors_factory());
 
             #[cfg(feature = "swagger")]
             let app = app.build();
