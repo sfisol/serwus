@@ -4,20 +4,20 @@
 macro_rules! return_logged {
     {warn, $error_type:expr, $message:expr, $error:expr} => {{
         let msg = format!($message, $error);
-        warn!("{}", msg);
+        log::warn!("{}", msg);
         return Err($error_type(msg))
     }};
     {error, $error_type:expr, $message:expr, $error:expr} => {{
         let msg = format!($message, $error);
-        warn!("{}", msg);
+        log::warn!("{}", msg);
         return Err($error_type(msg))
     }};
     {warn, $error_type:expr, $message:expr} => {{
-        warn!($message);
+        log::warn!($message);
         return Err($error_type($message.to_string()))
     }};
     {error, $error_type:expr, $message:expr, $error:expr} => {{
-        warn!($message);
+        log::warn!($message);
         return Err($error_type($message.to_string()))
     }};
 }
@@ -26,20 +26,20 @@ macro_rules! return_logged {
 macro_rules! error_logged {
     {warn, $message:expr, $error:expr} => {{
         let msg = format!($message, $error);
-        warn!("{}", msg);
+        log::warn!("{}", msg);
         msg
     }};
     {error, $message:expr, $error:expr} => {{
         let msg = format!($message, $error);
-        warn!("{}", msg);
+        log::warn!("{}", msg);
         msg
     }};
     {warn, $message:expr} => {{
-        warn!($message);
+        log::warn!($message);
         $message.to_string()
     }};
     {error, $message:expr, $error:expr} => {{
-        warn!($message);
+        log::warn!($message);
         $message.to_string()
     }};
 }

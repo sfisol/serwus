@@ -1,7 +1,7 @@
-use ::diesel::pg::PgConnection;
-use ::r2d2::{self, Error};
-use ::r2d2_diesel::ConnectionManager;
-use ::std::env;
+use diesel::pg::PgConnection;
+use r2d2::{self, Error};
+use r2d2_diesel::ConnectionManager;
+use std::env;
 
 use super::threads::num_threads;
 

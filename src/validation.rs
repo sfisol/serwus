@@ -1,6 +1,9 @@
-use std::borrow::Cow;
+use serde::{Deserialize, Serialize};
+use std::{
+    borrow::Cow,
+    collections::HashMap,
+};
 use validator::ValidationErrors;
-use std::collections::HashMap;
 
 use super::string_utils::to_camel_case;
 

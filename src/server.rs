@@ -7,17 +7,18 @@
 )]
 #![allow(clippy::single_match_else)]
 
-use ::actix_cors::Cors;
+use actix_cors::Cors;
 use actix_http::{body::Body, Request, Error};
-use ::actix_rt;
-use ::actix_service::Service;
-use ::actix_web::{
+use actix_rt;
+use actix_service::Service;
+use actix_web::{
     App, http, HttpServer, test,
     middleware::Logger,
     dev::ServiceResponse,
 };
-use ::dotenv::dotenv;
-use ::env_logger;
+use dotenv::dotenv;
+use env_logger;
+use log::info;
 
 #[cfg(feature = "swagger")]
 use paperclip::actix::{web, OpenApiExt};

@@ -1,5 +1,5 @@
-use ::num_cpus;
-use ::std::env;
+use num_cpus;
+use std::env;
 
 pub fn num_threads() -> usize {
     let num_cpus = if env::var("TEST").is_ok() {

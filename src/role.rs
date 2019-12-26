@@ -1,10 +1,11 @@
-use ::diesel::{
+use diesel::{
     sql_types::SmallInt,
     backend::Backend,
     deserialize::{self, FromSql},
     serialize::{self, ToSql, Output},
 };
-use ::std::io;
+use serde::{Deserialize, Serialize};
+use std::io;
 
 #[derive(Debug, Clone, Serialize, Deserialize, AsExpression, FromSqlRow, PartialEq)]
 #[sql_type = "SmallInt"]

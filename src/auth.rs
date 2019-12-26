@@ -1,12 +1,13 @@
-use ::actix_web::{
+use actix_web::{
     HttpRequest, Error,
     error::{ErrorUnauthorized},
 };
-use ::jsonwebtoken::{
+use jsonwebtoken::{
     encode, decode, Header, Validation,
     errors::{Error as JwtError, ErrorKind::ExpiredSignature},
 };
-use ::serde::{Serialize, de::DeserializeOwned};
+use log::warn;
+use serde::{Serialize, de::DeserializeOwned};
 
 pub use super::role::Role;
 
