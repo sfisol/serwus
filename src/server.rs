@@ -110,10 +110,10 @@ where
             .wrap(Logger::default())
             .wrap(cors_factory());
 
-            #[cfg(feature = "swagger")]
-            let app = app.build();
+        #[cfg(feature = "swagger")]
+        let app = app.build();
 
-            app
+        app
     })
     .workers(numthreads)
     .bind(format!("0.0.0.0:{}", app_port))

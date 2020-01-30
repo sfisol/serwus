@@ -3,7 +3,7 @@ use actix_web::{
     error::{ErrorUnauthorized},
 };
 use jsonwebtoken::{
-    encode, decode, Header, Validation,
+    encode, decode, Header, Validation, DecodingKey, EncodingKey,
     errors::{Error as JwtError, ErrorKind::ExpiredSignature},
 };
 use log::warn;
@@ -20,7 +20,7 @@ pub fn encode_jwt<T>(object: &T) -> Result<String, JwtError>
 where T: Serialize + KnowSecret
 {
     let header: &Header = &Header::default();
-    encode(header, object, &T::get_secret())
+    encode(header, object, &EncodingKey::from_secret(&T::get_secret()))
 }
 
 pub trait FromEncoded: Sized + KnowSecret {
@@ -32,7 +32,7 @@ impl<T: DeserializeOwned + KnowSecret> FromEncoded for T {
         let header: &Header = &Header::default();
         let validation: &Validation = &Validation::new(header.alg);
 
-        decode::<T>(encoded_token, &T::get_secret(), validation)
+        decode::<T>(encoded_token, &DecodingKey::from_secret(&T::get_secret()), validation)
             .map(|data| data.claims)
     }
 }
