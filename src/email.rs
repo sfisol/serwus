@@ -8,7 +8,7 @@ pub fn normalize(val: &str) -> Result<String, NoAtSymbolError> {
     let parts: Vec<&str> = val.rsplitn(2, '@').collect();
     let normalized_domain = parts[0].to_lowercase();
 
-    Ok(format!("{}@{}", parts[1].to_lowercase(), normalized_domain))
+    Ok(format!("{}@{}", parts[1], normalized_domain))
 }
 
 pub fn get_domain(val: &str) -> Result<String, NoAtSymbolError> {
