@@ -1,12 +1,3 @@
-#![warn(
-    clippy::all,
-    //clippy::restriction,
-    clippy::pedantic,
-    clippy::nursery,
-    clippy::cargo,
-)]
-#![allow(clippy::single_match_else)]
-
 use actix_cors::Cors;
 use actix_http::{body::Body, Request, Error};
 use actix_rt;
@@ -97,6 +88,7 @@ where
     let app_data = prepare_app_data();
 
     info!("Starting HTTP server");
+    #[allow(clippy::let_and_return)]
     HttpServer::new(move || {
         let app = App::new();
 
@@ -132,6 +124,7 @@ where
 {
     let app_data = test::run_on(|| prepare_app_data());
 
+    #[allow(clippy::let_and_return)]
     test::init_service({
         let app = App::new();
 
