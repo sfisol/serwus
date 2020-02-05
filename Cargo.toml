@@ -19,7 +19,6 @@ bytes = "0.4"
 chrono = { version = "0.4", features = ["serde"], optional = true }
 diesel = { version = "1.4", features = ["postgres", "chrono"], optional = true }
 dotenv = "0.15"
-env_logger = "0.7"
 futures = "0.1"
 jsonwebtoken = "7"
 log = "0.4"
@@ -30,3 +29,4 @@ r2d2 = { version = "0.8", optional = true }
 serde = "1.0"
 serde_derive = "1.0"
 validator = "0.10"
+colored = "1.9"

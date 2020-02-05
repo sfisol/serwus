@@ -28,3 +28,5 @@ pub mod validation;
 pub mod pagination;
 
 mod string_utils;
+
+pub mod logger;

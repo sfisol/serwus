@@ -2,6 +2,7 @@ use diesel::pg::PgConnection;
 use r2d2::{self, Error};
 use r2d2_diesel::ConnectionManager;
 use std::env;
+use log::{error, info};
 
 use super::threads::num_threads;
 
@@ -13,6 +14,8 @@ pub fn init_default_pool() -> Result<Pool, Error> {
 }
 
 pub fn init_pool(size: usize) -> Result<Pool, Error> {
+    info!("Connecting to database");
+
     let manager = ConnectionManager::<PgConnection>::new(database_url());
 
     let max_size = if env::var("TEST").is_ok() && size > 2 {
@@ -26,7 +29,7 @@ pub fn init_pool(size: usize) -> Result<Pool, Error> {
         .max_size(max_size as u32)
         .build(manager)
         .map_err(|err| {
-            println!("Can't connect to database: {}", err);
+            error!("Can't connect to database: {}", err);
             err
         })
 }

@@ -8,8 +8,7 @@ use actix_web::{
     dev::ServiceResponse,
 };
 use dotenv::dotenv;
-use env_logger;
-use log::info;
+use log::{info, error};
 
 #[cfg(feature = "swagger")]
 use paperclip::actix::{web, OpenApiExt};
@@ -19,6 +18,8 @@ use actix_web::web;
 use super::threads;
 #[cfg(feature = "pgsql")]
 use super::db_pool;
+
+use super::logger;
 
 #[derive(Clone)]
 pub struct DefaultAppData {
@@ -76,8 +77,13 @@ where
     C: Fn() -> Cors + Send + Clone + 'static
 {
     dotenv().ok();
+
+    match logger::init_logger() {
+        Ok(_) => info!("Logger has been initialized"),
+        Err(_) => error!("Error logger initialization")
+    };
+
     //env::set_var("RUST_LOG", "actix_web=debug");
-    env_logger::init();
 
     let numthreads = threads::num_threads();
     info!("Configuring for {} threads", numthreads);
