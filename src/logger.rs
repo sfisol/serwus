@@ -44,9 +44,11 @@ impl log::Log for ConsoleLogger {
                     format!("{}", record.args()).green(),
                 )
             } else {
-                println!("[{} {} {}] {}",
+                println!("{}{} {} {}{} {}",
+                    "[".to_string().white(),
                     date, level,
                     record.module_path().unwrap_or_else(|| ""),
+                    "]".to_string().white(),
                     format!("{}", record.args()).white(),
                 )
             }
