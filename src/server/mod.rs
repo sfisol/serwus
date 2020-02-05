@@ -1,3 +1,6 @@
+pub mod stats;
+pub mod app_data;
+
 use actix_cors::Cors;
 use actix_http::{body::Body, Request, Error};
 use actix_rt;
@@ -9,37 +12,23 @@ use actix_web::{
 };
 use dotenv::dotenv;
 use log::{info, error};
+use serde::Serialize;
 
-#[cfg(feature = "swagger")]
-use paperclip::actix::{web, OpenApiExt};
 #[cfg(not(feature = "swagger"))]
 use actix_web::web;
 
+#[cfg(feature = "swagger")]
+use paperclip::actix::{web, OpenApiExt};
+
 use super::threads;
+
 #[cfg(feature = "pgsql")]
 use super::db_pool;
 
 use super::logger;
+use stats::{BaseStats, StatsWrapper, StatsPresenter, default_healthcheck_handler, default_stats_handler};
 
-#[derive(Clone)]
-pub struct DefaultAppData {
-    #[cfg(feature = "pgsql")]
-    pub db_pool: db_pool::Pool,
-}
-
-#[cfg(feature = "pgsql")]
-pub fn default_app_data() -> DefaultAppData {
-    // FIXME: Create Pool as Actix Actor
-    info!("Connecting to database");
-    let db_pool = db_pool::init_default_pool().unwrap();
-
-    DefaultAppData { db_pool }
-}
-
-#[cfg(not(feature = "pgsql"))]
-pub fn default_app_data() -> DefaultAppData {
-    DefaultAppData { }
-}
+pub use app_data::{DefaultAppData, default_app_data};
 
 fn default_cors_factory() -> Cors {
     Cors::new()
@@ -49,7 +38,7 @@ fn default_cors_factory() -> Cors {
         .max_age(3600)
 }
 
-pub fn start<T, F>
+pub fn start<D, T, F>
 (
     name: &str,
     prepare_app_data: impl Fn() -> T,
@@ -57,13 +46,20 @@ pub fn start<T, F>
     app_port: &str,
 )
 where
-    T: 'static + Clone + Send,
+    D: Serialize + 'static,
+    T: StatsPresenter<D> + 'static + Clone + Send,
     F: Fn(&mut web::ServiceConfig) + Send + Clone + Copy + 'static,
 {
-    start_with_cors(name, prepare_app_data, configure_app, app_port, default_cors_factory)
+    start_with_cors(
+        name,
+        prepare_app_data,
+        configure_app,
+        app_port,
+        default_cors_factory
+    )
 }
 
-pub fn start_with_cors<T, F, C>
+pub fn start_with_cors<D, T, F, C>
 (
     name: &str,
     prepare_app_data: impl Fn() -> T,
@@ -72,9 +68,10 @@ pub fn start_with_cors<T, F, C>
     cors_factory: C,
 )
 where
-    T: 'static + Clone + Send,
+    D: Serialize + 'static,
+    T: StatsPresenter<D> + 'static + Clone + Send,
     F: Fn(&mut web::ServiceConfig) + Send + Clone + Copy + 'static,
-    C: Fn() -> Cors + Send + Clone + 'static
+    C: Fn() -> Cors + Send + Clone + 'static,
 {
     dotenv().ok();
 
@@ -93,6 +90,8 @@ where
 
     let app_data = prepare_app_data();
 
+    let stats = BaseStats::default();
+
     info!("Starting HTTP server");
     #[allow(clippy::let_and_return)]
     HttpServer::new(move || {
@@ -104,8 +103,12 @@ where
 
         let app = app
             .data(app_data.clone())
+            .data(stats.clone())
             .configure(configure_app)
+            .route("/_healthcheck", web::get().to(default_healthcheck_handler))
+            .route("/_stats", web::get().to_async(default_stats_handler::<T, D>))
             .wrap(Logger::default())
+            .wrap(StatsWrapper::default())
             .wrap(cors_factory());
 
         #[cfg(feature = "swagger")]
@@ -120,7 +123,6 @@ where
 
     info!("Activating actix event loop");
     let _ = sys.run();
-
 }
 
 pub fn test_init<T, F>(prepare_app_data: impl Fn() -> T, configure_app: F) -> impl Service<Request = Request, Response = ServiceResponse<Body>, Error = Error>
