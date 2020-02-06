@@ -6,9 +6,13 @@ pub static LOGGER: ConsoleLogger = ConsoleLogger;
 
 pub struct ConsoleLogger;
 
+pub fn logger_level() -> String {
+    ::std::env::var("LOGGER_LEVEL").unwrap_or_else(|_| "info".to_string())
+}
+
 impl log::Log for ConsoleLogger {
     fn enabled(&self, metadata: &Metadata) -> bool {
-        metadata.level() <= Level::Info
+        metadata.level() <= Level::Info || logger_level() == "debug"
     }
 
     fn log(&self, record: &Record) {
@@ -61,9 +65,7 @@ impl log::Log for ConsoleLogger {
 pub fn init_logger() -> Result<(), SetLoggerError> {
     log::set_logger(&LOGGER)?;
 
-    let env = ::std::env::var("ENV").unwrap_or_else(|_| "dev".to_string());
-
-    if env == "dev" {
+    if logger_level() == "debug" {
         log::set_max_level(LevelFilter::Debug);
     } else {
         log::set_max_level(LevelFilter::Info);
