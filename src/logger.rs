@@ -60,7 +60,14 @@ impl log::Log for ConsoleLogger {
 
 pub fn init_logger() -> Result<(), SetLoggerError> {
     log::set_logger(&LOGGER)?;
-    log::set_max_level(LevelFilter::Info);
+
+    let env = ::std::env::var("ENV").unwrap_or_else(|_| "dev".to_string());
+
+    if env == "dev" {
+        log::set_max_level(LevelFilter::Debug);
+    } else {
+        log::set_max_level(LevelFilter::Info);
+    }
 
     info!("Logger init...");
 
