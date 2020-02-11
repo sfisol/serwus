@@ -30,3 +30,6 @@ pub mod pagination;
 mod string_utils;
 
 pub mod logger;
+
+// Re-export EmptyStats from microservice_derive for convenience
+pub use microservice_derive::EmptyStats;
