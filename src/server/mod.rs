@@ -26,7 +26,7 @@ use super::threads;
 use super::db_pool;
 
 use super::logger;
-use stats::{BaseStats, StatsWrapper, StatsPresenter, default_healthcheck_handler, default_stats_handler};
+use stats::{BaseStats, StatsWrapper, StatsPresenter, default_healthcheck_handler, default_readiness_handler, default_stats_handler};
 
 pub use app_data::{DefaultAppData, default_app_data};
 
@@ -105,8 +105,9 @@ where
             .data(app_data.clone())
             .data(stats.clone())
             .configure(configure_app)
-            .route("/_healthcheck", web::get().to(default_healthcheck_handler))
-            .route("/_stats", web::get().to_async(default_stats_handler::<T, D>))
+            .route("_healthcheck", web::get().to(default_healthcheck_handler))
+            .route("_ready", web::get().to_async(default_readiness_handler::<T, D>))
+            .route("_stats", web::get().to_async(default_stats_handler::<T, D>))
             .wrap(Logger::default())
             .wrap(StatsWrapper::default())
             .wrap(cors_factory());

@@ -39,6 +39,10 @@ pub struct DefaultServiceStats {
 }
 
 impl StatsPresenter<DefaultServiceStats> for DefaultAppData {
+    fn is_ready(&self) -> Box<dyn Future<Item=bool, Error=Error>> {
+        Box::new(fut_ok(self.db_pool.get().is_ok()))
+    }
+
     fn get_stats(&self) -> Box<dyn Future<Item=DefaultServiceStats, Error=Error>> {
         let db_connection = self.db_pool.get().is_ok();
 
