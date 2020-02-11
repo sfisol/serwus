@@ -72,6 +72,7 @@ impl Default for StatsWrapper {
     fn default() -> Self {
         let mut excludes = HashSet::with_capacity(2);
         excludes.insert("/_healthcheck".to_string());
+        excludes.insert("/_ready".to_string());
         excludes.insert("/_stats".to_string());
         Self::new(excludes)
     }
@@ -183,10 +184,25 @@ where
     }
 }
 
-/// Default alive healthcheck
+/// Default alive healthcheck handler
 pub fn default_healthcheck_handler() { }
 
-// TODO: Default readiness healthcheck
+/// Default readiness handler
+pub fn default_readiness_handler<S, D>(service_data: web::Data<S>) -> impl Future<Item = HttpResponse, Error = Error>
+where
+    D: Serialize,
+    S: StatsPresenter<D>,
+{
+    let fut_res = service_data.is_ready()
+        .then(|result|
+            match result {
+                Err(error) => HttpResponse::InternalServerError().body(format!("Can't check readiness: {}", error)),
+                Ok(true) => HttpResponse::Ok().finish(),
+                Ok(false) => HttpResponse::ServiceUnavailable().finish(),
+            }
+        );
+    Box::new(fut_res)
+}
 
 // Default stats handler
 pub fn default_stats_handler<S, D>(base_data: web::Data<BaseStats>, service_data: web::Data<S>) -> impl Future<Item = HttpResponse, Error = Error>
@@ -220,6 +236,7 @@ pub struct StatsOutput<D: Serialize> {
 }
 
 pub trait StatsPresenter<D: Serialize> {
+    fn is_ready(&self) -> Box<dyn Future<Item = bool, Error = Error>>;
     fn get_stats(&self) -> Box<dyn Future<Item = D, Error = Error>>;
 }
 
