@@ -95,7 +95,10 @@ where
     info!("Starting HTTP server");
     #[allow(clippy::let_and_return)]
     HttpServer::new(move || {
-        let app = App::new();
+        let app = App::new()
+            .route("_healthcheck", actix_web::web::get().to(default_healthcheck_handler))
+            .route("_ready", actix_web::web::get().to_async(default_readiness_handler::<T, D>))
+            .route("_stats", actix_web::web::get().to_async(default_stats_handler::<T, D>));
 
         #[cfg(feature = "swagger")]
         let app = app.wrap_api()
@@ -105,9 +108,6 @@ where
             .data(app_data.clone())
             .data(stats.clone())
             .configure(configure_app)
-            .route("_healthcheck", web::get().to(default_healthcheck_handler))
-            .route("_ready", web::get().to_async(default_readiness_handler::<T, D>))
-            .route("_stats", web::get().to_async(default_stats_handler::<T, D>))
             .wrap(Logger::default())
             .wrap(StatsWrapper::default())
             .wrap(cors_factory());
