@@ -1,7 +1,7 @@
 pub mod stats;
 pub mod app_data;
 
-use actix_cors::Cors;
+use actix_cors::{Cors, CorsFactory};
 use actix_http::{body::Body, Request, Error};
 use actix_rt;
 use actix_service::Service;
@@ -30,12 +30,13 @@ use stats::{BaseStats, StatsWrapper, StatsPresenter, default_healthcheck_handler
 
 pub use app_data::{DefaultAppData, default_app_data};
 
-fn default_cors_factory() -> Cors {
+fn default_cors_factory() -> CorsFactory {
     Cors::new()
         .send_wildcard()
         .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"])
         .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT, http::header::CONTENT_TYPE])
         .max_age(3600)
+        .finish()
 }
 
 pub fn start<D, T, F>
@@ -71,7 +72,7 @@ where
     D: Serialize + 'static,
     T: StatsPresenter<D> + 'static + Clone + Send,
     F: Fn(&mut web::ServiceConfig) + Send + Clone + Copy + 'static,
-    C: Fn() -> Cors + Send + Clone + 'static,
+    C: Fn() -> CorsFactory + Send + Clone + 'static,
 {
     dotenv().ok();
 
@@ -97,8 +98,8 @@ where
     HttpServer::new(move || {
         let app = App::new()
             .route("_healthcheck", actix_web::web::get().to(default_healthcheck_handler))
-            .route("_ready", actix_web::web::get().to_async(default_readiness_handler::<T, D>))
-            .route("_stats", actix_web::web::get().to_async(default_stats_handler::<T, D>));
+            .route("_ready", actix_web::web::get().to(default_readiness_handler::<T, D>))
+            .route("_stats", actix_web::web::get().to(default_stats_handler::<T, D>));
 
         #[cfg(feature = "swagger")]
         let app = app.wrap_api()
@@ -120,18 +121,18 @@ where
     .workers(numthreads)
     .bind(format!("0.0.0.0:{}", app_port))
     .expect("Can't bind")
-    .start();
+    .run();
 
     info!("Activating actix event loop");
     let _ = sys.run();
 }
 
-pub fn test_init<T, F>(prepare_app_data: impl Fn() -> T, configure_app: F) -> impl Service<Request = Request, Response = ServiceResponse<Body>, Error = Error>
+pub async fn test_init<T, F>(prepare_app_data: impl Fn() -> T, configure_app: F) -> impl Service<Request = Request, Response = ServiceResponse<Body>, Error = Error>
 where
     T: 'static,
     F: Fn(&mut web::ServiceConfig),
 {
-    let app_data = test::run_on(|| prepare_app_data());
+    let app_data = prepare_app_data();
 
     #[allow(clippy::let_and_return)]
     test::init_service({
@@ -148,5 +149,5 @@ where
         let app = app.build();
 
         app
-    })
+    }).await
 }

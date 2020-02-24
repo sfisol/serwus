@@ -4,6 +4,7 @@ use log::{info};
 use actix_web::Error;
 use futures::future::{Future, ok as fut_ok};
 use serde::Serialize;
+use std::pin::Pin;
 
 #[cfg(feature = "pgsql")]
 use super::db_pool;
@@ -38,15 +39,17 @@ pub struct DefaultServiceStats {
 }
 
 impl StatsPresenter<DefaultServiceStats> for DefaultAppData {
-    fn is_ready(&self) -> Box<dyn Future<Item=bool, Error=Error>> {
+    fn is_ready(&self) -> Pin<Box<dyn Future<Output=Result<bool, Error>>>> {
         #[cfg(feature = "pgsql")]
-        return Box::new(fut_ok(self.db_pool.get().is_ok()));
+        let res = self.db_pool.get().is_ok();
 
         #[cfg(not(feature = "pgsql"))]
-        return Box::new(fut_ok(true));
+        let res = false;
+
+        Box::pin(fut_ok(res))
     }
 
-    fn get_stats(&self) -> Box<dyn Future<Item=DefaultServiceStats, Error=Error>> {
+    fn get_stats(&self) -> Pin<Box<dyn Future<Output=Result<DefaultServiceStats, Error>>>> {
         #[cfg(feature = "pgsql")]
         let db_connection = self.db_pool.get().is_ok();
 
@@ -57,6 +60,6 @@ impl StatsPresenter<DefaultServiceStats> for DefaultAppData {
             }
         );
 
-        Box::new(fut)
+        Box::pin(fut)
     }
 }

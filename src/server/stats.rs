@@ -1,14 +1,14 @@
 //! Request counter and other stats middleware
 
 use std::collections::{HashSet, HashMap};
-use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
+use std::pin::Pin;
 use std::rc::Rc;
+use std::task::{Context, Poll};
 
 use actix_service::{Service, Transform};
-use futures::future::{ok as fut_ok, FutureResult};
-use futures::{Async, Future, Poll};
-use log::debug;
+use futures::future::{Future, Ready, ok as fut_ok, FutureExt, TryFutureExt};
+use log::{debug, warn};
 
 use actix_web::dev::MessageBody;
 use actix_web::error::Error;
@@ -81,6 +81,7 @@ impl Default for StatsWrapper {
 impl<S, B> Transform<S> for StatsWrapper
 where
     S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S::Future: 'static,
     B: MessageBody,
 {
     type Request = ServiceRequest;
@@ -88,7 +89,7 @@ where
     type Error = Error;
     type InitError = ();
     type Transform = StatsMiddleware<S>;
-    type Future = FutureResult<Self::Transform, Self::InitError>;
+    type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
         fut_ok(StatsMiddleware {
@@ -107,88 +108,68 @@ pub struct StatsMiddleware<S> {
 impl<S, B> Service for StatsMiddleware<S>
 where
     S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S::Future: 'static,
     B: MessageBody,
 {
     type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
-    type Future = StatsResponse<S, B>;
+    #[allow(clippy::type_complexity)]
+    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>;
 
-    fn poll_ready(&mut self) -> Poll<(), Self::Error> {
-        self.service.poll_ready()
+    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        self.service.poll_ready(cx)
     }
 
     fn call(&mut self, req: ServiceRequest) -> Self::Future {
         let count_it = !self.config.excludes.contains(req.path());
 
+        let stats_arc_for_request = req.app_data::<BaseStats>();
+        let stats_arc_for_response = stats_arc_for_request.clone();
+
         if count_it {
-            if let Some(stats_arc) = req.app_data::<BaseStats>() {
+            if let Some(stats_arc) = stats_arc_for_request {
                 if let Ok(mut stats) = stats_arc.0.write() {
                     stats.request_started += 1;
                 }
             }
         }
 
-        StatsResponse {
-            fut: self.service.call(req),
-            count_it,
-            _t: PhantomData,
-        }
-    }
-}
+        let fut = self.service.call(req);
 
-#[doc(hidden)]
-pub struct StatsResponse<S, B>
-where
-    B: MessageBody,
-    S: Service,
-{
-    fut: S::Future,
-    count_it: bool,
-    _t: PhantomData<(B,)>,
-}
+        Box::pin(async move {
+            let res = fut.await?;
 
-impl<S, B> Future for StatsResponse<S, B>
-where
-    B: MessageBody,
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
-{
-    type Item = ServiceResponse<B>;
-    type Error = Error;
-
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        let res = futures::try_ready!(self.fut.poll());
-
-        if let Some(error) = res.response().error() {
-            if res.response().head().status != StatusCode::INTERNAL_SERVER_ERROR {
-                debug!("Error in response: {:?}", error);
-            }
-        }
-
-        if self.count_it {
-            let req = res.request();
-            if let Some(stats_arc) = req.app_data::<BaseStats>() {
-                if let Ok(mut stats) = stats_arc.0.write() {
-                    stats.request_finished += 1;
-                    let left = stats.request_started - stats.request_finished;
-                    if left > 0 {
-                        println!("Active clients: {}", left);
-                    }
-                    let status_code = res.status().as_u16();
-                    *stats.status_codes.entry(status_code).or_insert(0) += 1;
+            if let Some(error) = res.response().error() {
+                if res.response().head().status != StatusCode::INTERNAL_SERVER_ERROR {
+                    debug!("Error in response: {:?}", error);
                 }
             }
-        }
 
-        Ok(Async::Ready(res))
+            if count_it {
+                if let Some(stats_arc) = stats_arc_for_response {
+                    if let Ok(mut stats) = stats_arc.0.write() {
+                        stats.request_finished += 1;
+                        let left = stats.request_started - stats.request_finished;
+                        if left > 1 {
+                            warn!("Active clients: {}", left);
+                        }
+                        let status_code = res.status().as_u16();
+                        *stats.status_codes.entry(status_code).or_insert(0) += 1;
+                    }
+                }
+            }
+
+            Ok(res)
+        })
     }
 }
 
 /// Default alive healthcheck handler
-pub fn default_healthcheck_handler() { }
+pub async fn default_healthcheck_handler() -> &'static str { "" }
 
 /// Default readiness handler
-pub fn default_readiness_handler<S, D>(service_data: web::Data<S>) -> impl Future<Item = HttpResponse, Error = Error>
+pub async fn default_readiness_handler<S, D>(service_data: web::Data<S>) -> Result<HttpResponse, Error>
 where
     D: Serialize,
     S: StatsPresenter<D>,
@@ -201,11 +182,11 @@ where
                 Ok(false) => HttpResponse::ServiceUnavailable().finish(),
             }
         );
-    Box::new(fut_res)
+    fut_res.await
 }
 
 // Default stats handler
-pub fn default_stats_handler<S, D>(base_data: web::Data<BaseStats>, service_data: web::Data<S>) -> impl Future<Item = HttpResponse, Error = Error>
+pub async fn default_stats_handler<S, D>(base_data: web::Data<BaseStats>, service_data: web::Data<S>) -> Result<HttpResponse, Error>
 where
     D: Serialize,
     S: StatsPresenter<D>,
@@ -224,7 +205,7 @@ where
             } else {
                 HttpResponse::InternalServerError().body("Can't acquire stats (1)".to_string())
             }
-        })
+        }).await
 }
 
 #[derive(Serialize)]
@@ -236,8 +217,8 @@ pub struct StatsOutput<D: Serialize> {
 }
 
 pub trait StatsPresenter<D: Serialize> {
-    fn is_ready(&self) -> Box<dyn Future<Item = bool, Error = Error>>;
-    fn get_stats(&self) -> Box<dyn Future<Item = D, Error = Error>>;
+    fn is_ready(&self) -> Pin<Box<dyn Future<Output=Result<bool, Error>>>>;
+    fn get_stats(&self) -> Pin<Box<dyn Future<Output=Result<D, Error>>>>;
 }
 
 // TODO unittests - see logger tests
