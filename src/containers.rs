@@ -7,3 +7,10 @@ pub struct ListResponse<T> {
     pub total_pages: i64,
     pub data: Vec<T>
 }
+
+pub fn transmute<X, Y>(arg: Vec<X>) -> Vec<Y>
+where
+    X: Into<Y>
+{
+    arg.into_iter().map(X::into).collect::<Vec<Y>>()
+}
