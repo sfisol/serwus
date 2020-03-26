@@ -2,12 +2,16 @@ use log::{info, Record, Level, Metadata, LevelFilter, SetLoggerError};
 use chrono::*;
 use colored::*;
 
-pub static LOGGER: ConsoleLogger = ConsoleLogger;
-
 pub struct ConsoleLogger;
+
+pub static LOGGER: ConsoleLogger = ConsoleLogger;
 
 pub fn logger_level() -> String {
     ::std::env::var("LOGGER_LEVEL").unwrap_or_else(|_| "info".to_string())
+}
+
+pub fn get_proj_name() -> String {
+    ::std::env::var("PROJECT_NAME").unwrap_or_else(|_| "".to_string())
 }
 
 impl log::Log for ConsoleLogger {
@@ -38,16 +42,17 @@ impl log::Log for ConsoleLogger {
             };
 
             let env = ::std::env::var("ENV").unwrap_or_else(|_| "dev".to_string());
+            let proj_lib = ::std::env::var("PROJECT_NAME").unwrap_or_else(|_| "".to_string());
 
             if [Level::Error, Level::Warn].contains(&record.level()) && env != "dev" {
-                eprintln!("[{} {}] {}:{} - {}",
+                println!("[{} {}] {}:{} - {}",
                     level,
                     record.module_path().unwrap_or_else(|| ""),
                     record.file().unwrap_or_else(|| ""),
                     record.line().unwrap_or_else(|| 0),
                     format!("{}", record.args()).green(),
                 )
-            } else {
+            } else if record.module_path().unwrap_or_else(|| "").contains(&proj_lib) {
                 println!("{}{} {} {}{} {}",
                     "[".to_string().white(),
                     date, level,
