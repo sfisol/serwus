@@ -9,7 +9,7 @@ macro_rules! return_logged {
     }};
     {error, $error_type:expr, $message:expr, $error:expr} => {{
         let msg = format!($message, $error);
-        log::warn!("{}", msg);
+        log::error!("{}", msg);
         return Err($error_type(msg))
     }};
     {warn, $error_type:expr, $message:expr} => {{
@@ -17,7 +17,7 @@ macro_rules! return_logged {
         return Err($error_type($message.to_string()))
     }};
     {error, $error_type:expr, $message:expr, $error:expr} => {{
-        log::warn!($message);
+        log::error!($message);
         return Err($error_type($message.to_string()))
     }};
 }
@@ -31,7 +31,7 @@ macro_rules! error_logged {
     }};
     {error, $message:expr, $error:expr} => {{
         let msg = format!($message, $error);
-        log::warn!("{}", msg);
+        log::error!("{}", msg);
         msg
     }};
     {warn, $message:expr} => {{
@@ -39,7 +39,7 @@ macro_rules! error_logged {
         $message.to_string()
     }};
     {error, $message:expr, $error:expr} => {{
-        log::warn!($message);
+        log::error!($message);
         $message.to_string()
     }};
 }
