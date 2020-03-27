@@ -52,8 +52,17 @@ impl log::Log for ConsoleLogger {
                     format!("{}", record.args()).green(),
                 )
             } else if
-                record.module_path().unwrap_or_else(|| "").contains(&proj_prefix) ||
-                record.module_path().unwrap_or_else(|| "").contains(lib_name) ||
+                env != "dev" &&
+                record.level() != Level::Debug
+            {
+                println!("[{} {}] - {}",
+                    level,
+                    record.module_path().unwrap_or(""),
+                    record.args(),
+                )
+            } else if
+                record.module_path().unwrap_or( "").contains(&proj_prefix) ||
+                record.module_path().unwrap_or("").contains(lib_name) ||
                 record.level() != Level::Debug
             {
                 println!("{}{} {} {}{} {}",
