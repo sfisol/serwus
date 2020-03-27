@@ -10,10 +10,6 @@ pub fn logger_level() -> String {
     ::std::env::var("LOGGER_LEVEL").unwrap_or_else(|_| "info".to_string())
 }
 
-pub fn get_proj_name() -> String {
-    ::std::env::var("PROJECT_NAME").unwrap_or_else(|_| "".to_string())
-}
-
 impl log::Log for ConsoleLogger {
     fn enabled(&self, metadata: &Metadata) -> bool {
         metadata.level() <= Level::Info || logger_level() == "debug"
@@ -42,7 +38,6 @@ impl log::Log for ConsoleLogger {
             };
 
             let env = ::std::env::var("ENV").unwrap_or_else(|_| "dev".to_string());
-            let proj_lib = ::std::env::var("PROJECT_NAME").unwrap_or_else(|_| "".to_string());
 
             if [Level::Error, Level::Warn].contains(&record.level()) && env != "dev" {
                 println!("[{} {}] {}:{} - {}",
@@ -52,7 +47,7 @@ impl log::Log for ConsoleLogger {
                     record.line().unwrap_or_else(|| 0),
                     format!("{}", record.args()).green(),
                 )
-            } else if record.module_path().unwrap_or_else(|| "").contains(&proj_lib) {
+            } else {
                 println!("{}{} {} {}{} {}",
                     "[".to_string().white(),
                     date, level,
