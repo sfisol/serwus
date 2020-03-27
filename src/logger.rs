@@ -33,11 +33,15 @@ impl log::Log for ConsoleLogger {
                 format!("{}", record.level()).green()
             } else if record.level() == Level::Error {
                 format!("{}", record.level()).red()
+            } else if record.level() == Level::Warn {
+                format!("{}", record.level()).bright_magenta()
             } else {
                 format!("{}", record.level()).yellow()
             };
 
             let env = ::std::env::var("ENV").unwrap_or_else(|_| "dev".to_string());
+            let proj_prefix = ::std::env::var("PROJECT_PREFIX").unwrap_or_else(|_| "".to_string());
+            let lib_name = env!("CARGO_PKG_NAME");
 
             if [Level::Error, Level::Warn].contains(&record.level()) && env != "dev" {
                 println!("[{} {}] {}:{} - {}",
@@ -47,7 +51,11 @@ impl log::Log for ConsoleLogger {
                     record.line().unwrap_or(0),
                     format!("{}", record.args()).green(),
                 )
-            } else {
+            } else if
+                record.module_path().unwrap_or_else(|| "").contains(&proj_prefix) ||
+                record.module_path().unwrap_or_else(|| "").contains(lib_name) ||
+                record.level() != Level::Debug
+            {
                 println!("{}{} {} {}{} {}",
                     "[".to_string().white(),
                     date, level,
