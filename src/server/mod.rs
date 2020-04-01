@@ -18,7 +18,7 @@ use serde::Serialize;
 use actix_web::web;
 
 #[cfg(feature = "swagger")]
-use paperclip::actix::{web, OpenApiExt};
+use paperclip::actix::{web, OpenApiExt, SecurityExt, SecurityScheme};
 
 use super::threads;
 
@@ -39,11 +39,12 @@ fn default_cors_factory() -> CorsFactory {
         .finish()
 }
 
-pub fn start<D, T, F>
+pub fn start<D, T, F, S, SE>
 (
     name: &str,
     prepare_app_data: impl Fn() -> T,
     configure_app: F,
+    security_def: (String, SecurityScheme),
     app_port: &str,
 )
 where
@@ -55,6 +56,7 @@ where
         name,
         prepare_app_data,
         configure_app,
+        security_def,
         app_port,
         default_cors_factory
     )
@@ -65,6 +67,7 @@ pub fn start_with_cors<D, T, F, C>
     name: &str,
     prepare_app_data: impl Fn() -> T,
     configure_app: F,
+    security_def: (String, SecurityScheme),
     app_port: &str,
     cors_factory: C,
 )
@@ -103,7 +106,8 @@ where
 
         #[cfg(feature = "swagger")]
         let app = app.wrap_api()
-            .with_json_spec_at("/spec");
+            .with_json_spec_at("/spec")
+            .add_security_def(&security_def.0, &security_def.1);
 
         let app = app
             .data(app_data.clone())

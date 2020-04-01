@@ -31,3 +31,6 @@ serde = "1.0"
 serde_derive = "1.0"
 validator = "0.10"
 colored = "1.9"
+
+[patch.'https://github.com/wafflespeanut/paperclip']
+paperclip = { git = "https://github.com/sfisol/paperclip", branch = "feature/security_definitions" }
