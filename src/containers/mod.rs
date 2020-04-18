@@ -1,3 +1,6 @@
+#[cfg(feature = "pgsql")]
+pub mod as_map;
+
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
