@@ -9,6 +9,9 @@ use std::pin::Pin;
 #[cfg(feature = "pgsql")]
 use super::db_pool;
 
+#[cfg(feature = "prometheus")]
+use super::prometheus::ToPrometheus;
+
 use super::stats::StatsPresenter;
 
 #[derive(Clone)]
@@ -60,5 +63,15 @@ impl StatsPresenter<DefaultServiceStats> for DefaultAppData {
         );
 
         Box::pin(fut)
+    }
+}
+
+#[cfg(feature = "prometheus")]
+impl ToPrometheus for DefaultServiceStats {
+    fn to_prometheus(&self) -> Vec<String> {
+        let mut out = Vec::new();
+        #[cfg(feature = "pgsql")]
+        out.push(format!("db_connection {}", self.db_connection as i32));
+        out
     }
 }

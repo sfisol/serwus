@@ -78,13 +78,12 @@ impl ValidationError {
                         None => "".to_owned()
                     };
 
-                    let mut errors: Vec<Error> = Vec::new();
-                    errors.push(
+                    let errors: Vec<Error> = vec![
                         Error {
                             code: val.code.to_owned().to_string(),
                             message,
                         }
-                    );
+                    ];
 
                     validation_error.errors.insert(
                         to_camel_case(field_key),

@@ -8,6 +8,7 @@ edition = "2018"
 default = ["pgsql"]
 pgsql = ["diesel", "r2d2", "r2d2-diesel", "quick-error"]
 swagger = ["paperclip"]
+prometheus = []
 
 [dependencies]
 actix = "0.10.0"
