@@ -1,5 +1,7 @@
 pub mod stats;
 pub mod app_data;
+#[cfg(feature = "prometheus")]
+pub mod prometheus;
 
 use actix_cors::Cors;
 use actix_http::{body::Body, Request, Error};
@@ -11,7 +13,6 @@ use actix_web::{
 };
 use dotenv::dotenv;
 use log::{info, error};
-use serde::Serialize;
 use std::io;
 
 #[cfg(not(feature = "swagger"))]
@@ -26,7 +27,7 @@ use super::threads;
 use super::db_pool;
 
 use super::logger;
-use stats::{BaseStats, StatsWrapper, StatsPresenter, default_healthcheck_handler, default_readiness_handler, default_stats_handler};
+use stats::{BaseStats, StatsWrapper, StatsPresenter, AppDataWrapper, default_healthcheck_handler, default_readiness_handler, default_stats_handler};
 
 pub use app_data::{DefaultAppData, default_app_data};
 
@@ -46,7 +47,7 @@ pub async fn start<D, T, F>
     run_env: &str,
 ) -> io::Result<()>
 where
-    D: Serialize + 'static,
+    D: AppDataWrapper + 'static,
     T: StatsPresenter<D> + 'static + Clone + Send,
     F: Fn(&mut web::ServiceConfig) + Send + Clone + Copy + 'static,
 {
@@ -68,7 +69,7 @@ pub async fn start_with_cors<D, T, F, C>
     cors_factory: C,
 ) -> io::Result<()>
 where
-    D: Serialize + 'static,
+    D: AppDataWrapper + 'static,
     T: StatsPresenter<D> + 'static + Clone + Send,
     F: Fn(&mut web::ServiceConfig) + Send + Clone + Copy + 'static,
     C: Fn() -> Cors + Send + Clone + 'static,
@@ -99,6 +100,10 @@ where
             .route("_healthcheck", actix_web::web::get().to(default_healthcheck_handler))
             .route("_ready", actix_web::web::get().to(default_readiness_handler::<T, D>))
             .route("_stats", actix_web::web::get().to(default_stats_handler::<T, D>));
+
+        #[cfg(feature = "prometheus")]
+        let app = app
+            .route("_prometheus", actix_web::web::get().to_async(prometheus::prometheus_stats_handler::<T, D>));
 
         #[cfg(feature = "swagger")]
         let app = if prod_env {
