@@ -13,6 +13,7 @@ pub enum Role {
     User = 0,
     Admin = 1,
     SuperAdmin = 2,
+    Tester = 3,
 }
 
 impl<DB: Backend> ToSql<SmallInt, DB> for Role
@@ -27,6 +28,7 @@ where
             Role::User => 0,
             Role::Admin => 1,
             Role::SuperAdmin => 2,
+            Role::Tester => 3,
         };
         v.to_sql(out)
     }
@@ -42,6 +44,7 @@ where
             0 => Role::User,
             1 => Role::Admin,
             2 => Role::SuperAdmin,
+            3 => Role::Tester,
             v => return Err(format!("Unknown identity role {:?}", v).into()),
         })
     }
