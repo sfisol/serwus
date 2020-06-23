@@ -69,6 +69,7 @@ impl StatsPresenter<DefaultServiceStats> for DefaultAppData {
 #[cfg(feature = "prometheus")]
 impl ToPrometheus for DefaultServiceStats {
     fn to_prometheus(&self) -> Vec<String> {
+        #![allow(clippy::vec_init_then_push)]
         let mut out = Vec::new();
         #[cfg(feature = "pgsql")]
         out.push(format!("db_connection {}", self.db_connection as i32));
