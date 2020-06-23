@@ -2,13 +2,13 @@ use actix_web::{
     error::Error,
     web::{self, HttpResponse},
 };
-use futures::Future;
+use futures::{Future, TryFutureExt};
 use serde::Serialize;
 
 use super::stats::{StatsPresenter, AppDataWrapper, StatsOutput, BaseStatsInner, BaseStats};
 
 // Prometheus stats handler
-pub fn prometheus_stats_handler<S, D>(base_data: web::Data<BaseStats>, service_data: web::Data<S>) -> impl Future<Item = HttpResponse, Error = Error>
+pub fn prometheus_stats_handler<S, D>(base_data: web::Data<BaseStats>, service_data: web::Data<S>) -> impl Future<Output=Result<HttpResponse, Error>>
 where
     D: AppDataWrapper,
     S: StatsPresenter<D>,
@@ -36,11 +36,12 @@ pub trait ToPrometheus {
 
 impl ToPrometheus for BaseStatsInner {
     fn to_prometheus(&self) -> Vec<String> {
-        let mut out = Vec::new();
-        out.push(format!("request_started {}", self.request_started));
-        out.push(format!("request_finished {}", self.request_finished));
+        let mut out = vec![
+            format!("request_started {}", self.request_started),
+            format!("request_finished {}", self.request_finished),
+        ];
         for (code, value) in &self.status_codes {
-            out.push(format!("status_codes{{code={}}} {}", code, value));
+            out.push(format!("status_codes{{code=\"{}\"}} {}", code, value));
         }
         out
     }

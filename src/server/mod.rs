@@ -103,7 +103,7 @@ where
 
         #[cfg(feature = "prometheus")]
         let app = app
-            .route("_prometheus", actix_web::web::get().to_async(prometheus::prometheus_stats_handler::<T, D>));
+            .route("_prometheus", actix_web::web::get().to(prometheus::prometheus_stats_handler::<T, D>));
 
         #[cfg(feature = "swagger")]
         let app = if prod_env {

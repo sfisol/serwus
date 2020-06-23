@@ -228,14 +228,16 @@ pub struct StatsOutput<D: Serialize> {
     pub(super) service: Option<D>,
 }
 
-pub trait StatsPresenter<D: Serialize> {
+pub trait StatsPresenter<D: AppDataWrapper> {
     fn is_ready(&self) -> Pin<Box<dyn Future<Output=Result<bool, Error>>>>;
     fn get_stats(&self) -> Pin<Box<dyn Future<Output=Result<D, Error>>>>;
 
     #[cfg(feature = "prometheus")]
     fn get_prometheus(&self) -> Pin<Box<dyn Future<Output=Result<Vec<String>, Error>>>> {
-        let fut = self.get_stats().map(|stats| stats.to_prometheus());
-        Box::new(fut)
+        let fut = self.get_stats().map(|stats_res|
+            stats_res.map(|stats| stats.to_prometheus())
+        );
+        Box::pin(fut)
     }
 }
 
