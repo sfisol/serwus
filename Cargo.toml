@@ -24,10 +24,15 @@ jsonwebtoken = "7"
 log = "0.4"
 microservice_derive = { path = "microservice_derive" }
 num_cpus = "1"
-paperclip = { git = "https://github.com/wafflespeanut/paperclip", features = ["actix", "decimal"], optional = true }
+paperclip = { git = "https://github.com/wafflespeanut/paperclip", features = ["actix", "rust_decimal"], optional = true }
 r2d2-diesel = { version = "1.0", optional = true }
 r2d2 = { version = "0.8", optional = true }
 serde = "1.0"
 serde_derive = "1.0"
 validator = "0.10"
 colored = "1.9"
+
+[patch.'https://github.com/wafflespeanut/paperclip']
+# paperclip = { git = "https://github.com/sfisol/paperclip", branch = "feature/actix-multipart" }
+# paperclip = { path = "../paperclip" }
+
