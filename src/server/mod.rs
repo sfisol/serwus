@@ -39,7 +39,7 @@ fn default_cors_factory() -> CorsFactory {
         .finish()
 }
 
-pub fn start<D, T, F, S, SE>
+pub fn start<D, T, F>
 (
     name: &str,
     prepare_app_data: impl Fn() -> T,
