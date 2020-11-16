@@ -3,7 +3,6 @@ pub mod app_data;
 
 use actix_cors::{Cors, CorsFactory};
 use actix_http::{body::Body, Request, Error};
-use actix_rt;
 use actix_service::Service;
 use actix_web::{
     App, http, HttpServer, test,

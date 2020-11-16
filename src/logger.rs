@@ -42,16 +42,16 @@ impl log::Log for ConsoleLogger {
             if [Level::Error, Level::Warn].contains(&record.level()) && env != "dev" {
                 println!("[{} {}] {}:{} - {}",
                     level,
-                    record.module_path().unwrap_or_else(|| ""),
-                    record.file().unwrap_or_else(|| ""),
-                    record.line().unwrap_or_else(|| 0),
+                    record.module_path().unwrap_or(""),
+                    record.file().unwrap_or(""),
+                    record.line().unwrap_or(0),
                     format!("{}", record.args()).green(),
                 )
             } else {
                 println!("{}{} {} {}{} {}",
                     "[".to_string().white(),
                     date, level,
-                    record.module_path().unwrap_or_else(|| ""),
+                    record.module_path().unwrap_or(""),
                     "]".to_string().white(),
                     format!("{}", record.args()).white(),
                 )

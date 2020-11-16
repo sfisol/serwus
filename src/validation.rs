@@ -34,8 +34,12 @@ pub struct ValidationError {
 }
 
 pub fn return_new_error(code: &'static str, message: &'static str) -> validator::ValidationError {
+    return_new_dynamic_error(code, Cow::Borrowed(message))
+}
+
+pub fn return_new_dynamic_error(code: &'static str, message: Cow<'static, str>) -> validator::ValidationError {
     let mut error = validator::ValidationError::new(code);
-    error.message = Some(Cow::Borrowed(message));
+    error.message = Some(message);
     error
 }
 

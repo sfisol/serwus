@@ -1,4 +1,3 @@
-use num_cpus;
 use std::env;
 
 pub fn num_threads() -> usize {
