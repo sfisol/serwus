@@ -1,7 +1,7 @@
 //! Request counter and other stats middleware
 
 use std::collections::{HashSet, HashMap};
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, RwLock, Weak};
 use std::pin::Pin;
 use std::rc::Rc;
 use std::task::{Context, Poll};
@@ -121,11 +121,11 @@ where
         self.service.poll_ready(cx)
     }
 
-    fn call(&mut self, req: ServiceRequest) -> Self::Future {
+    fn call(&mut self, req: Self::Request) -> Self::Future {
         let count_it = !self.config.excludes.contains(req.path());
 
+        // Count request start-of-handling
         let stats_arc_for_request = req.app_data::<BaseStats>();
-        let stats_arc_for_response = stats_arc_for_request.clone();
 
         if count_it {
             if let Some(stats_arc) = stats_arc_for_request {
@@ -134,6 +134,10 @@ where
                 }
             }
         }
+
+        // Get stats reference for later to count stop-of-handling
+        // It seems in actix 3 app data can be not available after the call so we get a weak Arc to stats
+        let stats_arc_for_response = stats_arc_for_request.map(|bs| Arc::downgrade(&bs.0));
 
         let fut = self.service.call(req);
 
@@ -147,12 +151,13 @@ where
             }
 
             if count_it {
-                if let Some(stats_arc) = stats_arc_for_response {
-                    if let Ok(mut stats) = stats_arc.0.write() {
+                // Try to acquire strong Arc to stats again
+                if let Some(stats_arc) = stats_arc_for_response.map(|wbs| Weak::upgrade(&wbs)).flatten() {
+                    if let Ok(mut stats) = stats_arc.write() {
                         stats.request_finished += 1;
                         let left = stats.request_started - stats.request_finished;
                         if left > 1 {
-                            warn!("Active clients: {}", left);
+                            warn!("Number of unfinished requests: {}", left);
                         }
                         let status_code = res.status().as_u16();
                         *stats.status_codes.entry(status_code).or_insert(0) += 1;
