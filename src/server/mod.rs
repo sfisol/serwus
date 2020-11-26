@@ -1,7 +1,7 @@
 pub mod stats;
 pub mod app_data;
 
-use actix_cors::{Cors, CorsFactory};
+use actix_cors::Cors;
 use actix_http::{body::Body, Request, Error};
 use actix_service::Service;
 use actix_web::{
@@ -29,13 +29,12 @@ use stats::{BaseStats, StatsWrapper, StatsPresenter, default_healthcheck_handler
 
 pub use app_data::{DefaultAppData, default_app_data};
 
-fn default_cors_factory() -> CorsFactory {
-    Cors::new()
+fn default_cors() -> Cors {
+    Cors::default()
         .send_wildcard()
         .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"])
         .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT, http::header::CONTENT_TYPE])
         .max_age(3600)
-        .finish()
 }
 
 pub fn start<D, T, F>
@@ -55,7 +54,7 @@ where
         prepare_app_data,
         configure_app,
         app_port,
-        default_cors_factory
+        default_cors,
     )
 }
 
@@ -71,7 +70,7 @@ where
     D: Serialize + 'static,
     T: StatsPresenter<D> + 'static + Clone + Send,
     F: Fn(&mut web::ServiceConfig) + Send + Clone + Copy + 'static,
-    C: Fn() -> CorsFactory + Send + Clone + 'static,
+    C: Fn() -> Cors + Send + Clone + 'static,
 {
     dotenv().ok();
 
