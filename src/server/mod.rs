@@ -43,6 +43,7 @@ pub fn start<D, T, F>
     prepare_app_data: impl Fn() -> T,
     configure_app: F,
     app_port: &str,
+    run_env: &str,
 )
 where
     D: Serialize + 'static,
@@ -54,6 +55,7 @@ where
         prepare_app_data,
         configure_app,
         app_port,
+        run_env,
         default_cors,
     )
 }
@@ -64,6 +66,7 @@ pub fn start_with_cors<D, T, F, C>
     prepare_app_data: impl Fn() -> T,
     configure_app: F,
     app_port: &str,
+    run_env: &str,
     cors_factory: C,
 )
 where
@@ -91,6 +94,8 @@ where
 
     let stats = BaseStats::default();
 
+    let prod_env = run_env == "prod";
+
     info!("Starting HTTP server");
     #[allow(clippy::let_and_return)]
     HttpServer::new(move || {
@@ -100,8 +105,12 @@ where
             .route("_stats", actix_web::web::get().to(default_stats_handler::<T, D>));
 
         #[cfg(feature = "swagger")]
-        let app = app.wrap_api()
-            .with_json_spec_at("/spec");
+        let app = if prod_env {
+            app.wrap_api()
+        } else {
+            app.wrap_api()
+                .with_json_spec_at("/spec")
+        };
 
         let app = app
             .data(app_data.clone())
