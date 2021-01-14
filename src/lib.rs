@@ -4,6 +4,9 @@
 #[macro_use] extern crate diesel;
 
 #[cfg(feature = "pgsql")]
+#[macro_use] extern crate quick_error;
+
+#[cfg(feature = "pgsql")]
 pub mod auth;
 
 pub mod containers;
