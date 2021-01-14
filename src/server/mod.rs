@@ -12,6 +12,7 @@ use actix_web::{
 use dotenv::dotenv;
 use log::{info, error};
 use serde::Serialize;
+use std::io;
 
 #[cfg(not(feature = "swagger"))]
 use actix_web::web;
@@ -37,38 +38,35 @@ fn default_cors() -> Cors {
         .max_age(3600)
 }
 
-pub fn start<D, T, F>
+pub async fn start<D, T, F>
 (
-    name: &str,
     prepare_app_data: impl Fn() -> T,
     configure_app: F,
     app_port: &str,
     run_env: &str,
-)
+) -> io::Result<()>
 where
     D: Serialize + 'static,
     T: StatsPresenter<D> + 'static + Clone + Send,
     F: Fn(&mut web::ServiceConfig) + Send + Clone + Copy + 'static,
 {
     start_with_cors(
-        name,
         prepare_app_data,
         configure_app,
         app_port,
         run_env,
         default_cors,
-    )
+    ).await
 }
 
-pub fn start_with_cors<D, T, F, C>
+pub async fn start_with_cors<D, T, F, C>
 (
-    name: &str,
     prepare_app_data: impl Fn() -> T,
     configure_app: F,
     app_port: &str,
     run_env: &str,
     cors_factory: C,
-)
+) -> io::Result<()>
 where
     D: Serialize + 'static,
     T: StatsPresenter<D> + 'static + Clone + Send,
@@ -87,13 +85,11 @@ where
     let numthreads = threads::num_threads();
     info!("Configuring for {} threads", numthreads);
 
-    info!("Creating actix event loop");
-    let sys = actix_rt::System::new(name);
-
     let app_data = prepare_app_data();
 
     let stats = BaseStats::default();
 
+    #[allow(unused)]
     let prod_env = run_env == "prod";
 
     info!("Starting HTTP server");
@@ -125,13 +121,11 @@ where
 
         app
     })
-    .workers(numthreads)
-    .bind(format!("0.0.0.0:{}", app_port))
-    .expect("Can't bind")
-    .run();
-
-    info!("Activating actix event loop");
-    let _ = sys.run();
+        .workers(numthreads)
+        .bind(format!("0.0.0.0:{}", app_port))
+        .expect("Can't bind")
+        .run()
+        .await
 }
 
 pub async fn test_init<T, F>(prepare_app_data: impl Fn() -> T, configure_app: F) -> impl Service<Request = Request, Response = ServiceResponse<Body>, Error = Error>

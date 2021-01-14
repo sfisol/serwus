@@ -6,10 +6,11 @@ edition = "2018"
 
 [features]
 default = ["pgsql"]
-pgsql = ["diesel", "r2d2", "r2d2-diesel"]
+pgsql = ["diesel", "r2d2", "r2d2-diesel", "quick-error"]
 swagger = ["paperclip"]
 
 [dependencies]
+actix = "0.10.0"
 actix-cors = "0.5"
 actix-http = "2.2.0"
 actix-rt = "1.1"
@@ -25,6 +26,7 @@ log = "0.4"
 microservice_derive = { path = "microservice_derive" }
 num_cpus = "1"
 paperclip = { version = "0.5.0", features = ["actix", "rust_decimal", "chrono"], optional = true }
+quick-error = { version = "2.0.0", optional = true }
 r2d2-diesel = { version = "1.0", optional = true }
 r2d2 = { version = "0.8", optional = true }
 serde = "1.0"
