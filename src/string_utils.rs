@@ -1,4 +1,4 @@
-// Original code taken from https://github.com/whatisinternet/Inflector
+// Simplified code from https://github.com/whatisinternet/Inflector
 
 pub fn to_camel_case(convertable_string: &str) -> String {
     let mut new_word: bool = false;
