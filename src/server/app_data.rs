@@ -19,7 +19,6 @@ pub struct DefaultAppData {
 
 #[cfg(feature = "pgsql")]
 pub fn default_app_data() -> DefaultAppData {
-    // FIXME: Create Pool as Actix Actor
     info!("Connecting to database");
     let db_pool = db_pool::init_default_pool().unwrap();
 
