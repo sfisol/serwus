@@ -8,3 +8,6 @@ before_script:
 script:
   - cargo clippy --all-features
   - cargo test --all-features
+jobs:
+  allow_failures:
+    - rust: stable
