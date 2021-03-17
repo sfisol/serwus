@@ -9,7 +9,7 @@ use jsonwebtoken::{
 use log::warn;
 use serde::{Serialize, de::DeserializeOwned};
 
-pub use super::role::Role;
+pub use crate::role::Role;
 
 pub trait KnowSecret {
     fn get_secret() -> Vec<u8>;
