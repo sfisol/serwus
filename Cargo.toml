@@ -8,7 +8,8 @@ edition = "2018"
 auth = ["jsonwebtoken"]
 rs256_jwks = ["alcoholic_jwt"]
 default = ["pgsql", "auth"]
-pgsql = ["diesel", "r2d2", "r2d2-diesel", "quick-error"]
+pgsql = ["diesel", "r2d2", "r2d2-diesel"]
+multidb = ["pgsql", "weighted-rs"]
 swagger = ["paperclip"]
 prometheus = []
 
@@ -30,11 +31,11 @@ log = "0.4"
 microservice_derive = { path = "microservice_derive" }
 num_cpus = "1"
 paperclip = { version = "0.5.0", features = ["actix", "rust_decimal", "chrono"], optional = true }
-quick-error = { version = "2.0.0", optional = true }
 r2d2-diesel = { version = "1.0", optional = true }
 r2d2 = { version = "0.8", optional = true }
 serde = "1.0"
 serde_derive = "1.0"
+weighted-rs = { version = "0.1.1", optional = true }
 validator = "0.12"
 colored = "2.0"
 
