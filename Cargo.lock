@@ -1167,12 +1167,12 @@ dependencies = [
  "microservice_derive",
  "num_cpus",
  "paperclip",
- "quick-error 2.0.0",
  "r2d2",
  "r2d2-diesel",
  "serde",
  "serde_derive",
  "validator",
+ "weighted-rs",
 ]
 
 [[package]]
@@ -1583,12 +1583,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a1d01941d82fa2ab50be1e79e6714289dd7cde78eba4c074bc5a4374f650dfe0"
 
 [[package]]
-name = "quick-error"
-version = "2.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ac73b1112776fc109b2e61909bc46c7e1bf0d7f690ffb1676553acce16d5cda"
-
-[[package]]
 name = "quote"
 version = "1.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1690,7 +1684,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52e44394d2086d010551b14b53b1f24e31647570cd1deb0379e2c21b329aba00"
 dependencies = [
  "hostname",
- "quick-error 1.2.3",
+ "quick-error",
 ]
 
 [[package]]
@@ -2350,6 +2344,15 @@ checksum = "222b1ef9334f92a21d3fb53dc3fd80f30836959a90f9274a626d7e06315ba3c3"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "weighted-rs"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "99eded5892abe2ef0b82002aa60227c1e40ff0caa6a653a5dda8471feded40a4"
+dependencies = [
+ "rand",
 ]
 
 [[package]]

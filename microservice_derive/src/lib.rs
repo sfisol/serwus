@@ -30,3 +30,24 @@ fn impl_empty_stats_macro(ast: &syn::DeriveInput) -> TokenStream {
     };
     gen.into()
 }
+
+#[proc_macro_derive(Canceled)]
+pub fn canceled_macro_derive(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+    impl_canceled_macro(&ast)
+}
+
+fn impl_canceled_macro(ast: &syn::DeriveInput) -> TokenStream {
+    let name = &ast.ident;
+    let gen = quote! {
+        impl ::std::convert::From<::actix_web::error::BlockingError<#name>> for #name {
+            fn from(b_err: ::actix_web::error::BlockingError<Self>) -> Self {
+                match b_err {
+                    ::actix_web::error::BlockingError::Canceled => Self::Canceled,
+                    ::actix_web::error::BlockingError::Error(err) => err,
+                }
+            }
+        }
+    };
+    gen.into()
+}
