@@ -23,19 +23,19 @@ where
                     service: Some(service_stats),
                 };
 
-                HttpResponse::Ok().body(output.to_prometheus().join("\n"))
+                HttpResponse::Ok().body(output.as_prometheus().join("\n"))
             } else {
                 HttpResponse::InternalServerError().body("Can't acquire stats (1)".to_string())
             }
         })
 }
 
-pub trait ToPrometheus {
-    fn to_prometheus(&self) -> Vec<String>;
+pub trait AsPrometheus {
+    fn as_prometheus(&self) -> Vec<String>;
 }
 
-impl ToPrometheus for BaseStatsInner {
-    fn to_prometheus(&self) -> Vec<String> {
+impl AsPrometheus for BaseStatsInner {
+    fn as_prometheus(&self) -> Vec<String> {
         let mut out = vec![
             format!("request_started {}", self.request_started),
             format!("request_finished {}", self.request_finished),
@@ -47,25 +47,25 @@ impl ToPrometheus for BaseStatsInner {
     }
 }
 
-impl ToPrometheus for BaseStats {
-    fn to_prometheus(&self) -> Vec<String> {
+impl AsPrometheus for BaseStats {
+    fn as_prometheus(&self) -> Vec<String> {
         if let Ok(inner) = self.0.read() {
-            inner.to_prometheus()
+            inner.as_prometheus()
         } else {
             Vec::new()
         }
     }
 }
 
-impl<D> ToPrometheus for StatsOutput<D>
+impl<D> AsPrometheus for StatsOutput<D>
 where
-    D: ToPrometheus + Serialize
+    D: AsPrometheus + Serialize
 {
-    fn to_prometheus(&self) -> Vec<String> {
+    fn as_prometheus(&self) -> Vec<String> {
         let mut out = Vec::new();
 
-        let base_stats = self.base.to_prometheus();
-        let service_stats = self.service.to_prometheus();
+        let base_stats = self.base.as_prometheus();
+        let service_stats = self.service.as_prometheus();
 
         for stat in base_stats {
             out.push(format!("base_{}", stat));
@@ -78,21 +78,21 @@ where
     }
 }
 
-impl<T> ToPrometheus for Option<T>
+impl<T> AsPrometheus for Option<T>
 where
-    T: ToPrometheus
+    T: AsPrometheus
 {
-    fn to_prometheus(&self) -> Vec<String> {
+    fn as_prometheus(&self) -> Vec<String> {
         if let Some(t) = self {
-            t.to_prometheus()
+            t.as_prometheus()
         } else {
             Vec::new()
         }
     }
 }
 
-impl ToPrometheus for () {
-    fn to_prometheus(&self) -> Vec<String> {
+impl AsPrometheus for () {
+    fn as_prometheus(&self) -> Vec<String> {
         Vec::new()
     }
 }

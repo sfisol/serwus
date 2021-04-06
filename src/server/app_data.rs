@@ -10,7 +10,7 @@ use std::pin::Pin;
 use super::db_pool;
 
 #[cfg(feature = "prometheus")]
-use super::prometheus::ToPrometheus;
+use super::prometheus::AsPrometheus;
 
 use super::stats::StatsPresenter;
 
@@ -67,8 +67,8 @@ impl StatsPresenter<DefaultServiceStats> for DefaultAppData {
 }
 
 #[cfg(feature = "prometheus")]
-impl ToPrometheus for DefaultServiceStats {
-    fn to_prometheus(&self) -> Vec<String> {
+impl AsPrometheus for DefaultServiceStats {
+    fn as_prometheus(&self) -> Vec<String> {
         #![allow(clippy::vec_init_then_push)]
         let mut out = Vec::new();
         #[cfg(feature = "pgsql")]

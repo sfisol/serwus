@@ -16,9 +16,6 @@ pub mod server;
 
 pub mod return_logged;
 
-#[cfg(feature = "auth")]
-pub mod role;
-
 pub mod threads;
 
 pub mod validation;
