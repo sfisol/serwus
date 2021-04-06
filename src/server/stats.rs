@@ -21,7 +21,7 @@ use actix_web::{
 use serde::Serialize;
 
 #[cfg(feature = "prometheus")]
-pub use super::prometheus::ToPrometheus;
+pub use super::prometheus::AsPrometheus;
 
 /// BaseStats contains BaseStatsInner singleton
 #[derive(Clone)]
@@ -235,21 +235,21 @@ pub trait StatsPresenter<D: AppDataWrapper> {
     #[cfg(feature = "prometheus")]
     fn get_prometheus(&self) -> Pin<Box<dyn Future<Output=Result<Vec<String>, Error>>>> {
         let fut = self.get_stats().map(|stats_res|
-            stats_res.map(|stats| stats.to_prometheus())
+            stats_res.map(|stats| stats.as_prometheus())
         );
         Box::pin(fut)
     }
 }
 
 #[cfg(feature = "prometheus")]
-pub trait AppDataWrapper: Serialize + ToPrometheus + 'static {}
+pub trait AppDataWrapper: Serialize + AsPrometheus + 'static {}
 #[cfg(not(feature = "prometheus"))]
 pub trait AppDataWrapper: Serialize {}
 
 #[cfg(feature = "prometheus")]
 impl<T> AppDataWrapper for T
 where
-    T: Serialize + ToPrometheus + 'static
+    T: Serialize + AsPrometheus + 'static
 { }
 
 #[cfg(not(feature = "prometheus"))]
