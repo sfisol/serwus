@@ -1,4 +1,4 @@
-use actix_web::client::Client;
+use awc::Client;
 use alcoholic_jwt::{token_kid, validate, Validation, JWKS, ValidJWT};
 
 #[derive(Debug)]

@@ -40,12 +40,13 @@ pub fn canceled_macro_derive(input: TokenStream) -> TokenStream {
 fn impl_canceled_macro(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
-        impl ::std::convert::From<::actix_web::error::BlockingError<#name>> for #name {
-            fn from(b_err: ::actix_web::error::BlockingError<Self>) -> Self {
-                match b_err {
-                    ::actix_web::error::BlockingError::Canceled => Self::Canceled,
-                    ::actix_web::error::BlockingError::Error(err) => err,
-                }
+        impl ::std::convert::From<::actix_web::error::BlockingError> for #name {
+            fn from(b_err: ::actix_web::error::BlockingError) -> Self {
+                Self::Canceled
+                // match b_err {
+                //     ::actix_web::error::BlockingError::Canceled => Self::Canceled,
+                //     ::actix_web::error::BlockingError::Error(err) => err,
+                // }
             }
         }
     };

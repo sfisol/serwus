@@ -14,14 +14,14 @@ swagger = ["paperclip"]
 prometheus = []
 
 [dependencies]
-actix = "0.10.0"
-actix-cors = "0.5"
-actix-http = "2.2.0"
-actix-rt = "1.1"
-actix-service = "1.0"
-actix-web = "3.3.2"
+actix = "0.11"
+actix-cors = "0.6.0-beta.1"
+actix-http = "3.0.0-beta.5"
+actix-service = "2.0.0-beta.4"
+actix-web = "4.0.0-beta.5"
+awc = "3.0.0-beta.4"
 alcoholic_jwt = { version = "1.0", optional = true }
-bytes = "1.0.1"
+bytes = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 diesel = { version = "1.4", features = ["postgres", "chrono"], optional = true }
 dotenv = "0.15"
@@ -30,16 +30,16 @@ jsonwebtoken = { version = "7", optional = true }
 log = "0.4"
 microservice_derive = { path = "microservice_derive" }
 num_cpus = "1"
-paperclip = { version = "0.5.0", features = ["actix", "rust_decimal", "chrono"], optional = true }
+paperclip = { version = "0.5", features = ["actix", "rust_decimal", "chrono"], optional = true }
 r2d2-diesel = { version = "1.0", optional = true }
 r2d2 = { version = "0.8", optional = true }
 serde = "1.0"
 serde_derive = "1.0"
-weighted-rs = { version = "0.1.1", optional = true }
+weighted-rs = { version = "0.1", optional = true }
 validator = "0.12"
 colored = "2.0"
 
 [patch.crates-io]
-paperclip = { git = "https://github.com/wafflespeanut/paperclip" }
-# paperclip = { git = "https://github.com/sfisol/paperclip", branch = "serde-value" }
+# paperclip = { git = "https://github.com/wafflespeanut/paperclip" }
+paperclip = { git = "https://github.com/sfisol/paperclip", branch = "actix4" }
 # paperclip = { path = "../paperclip" }

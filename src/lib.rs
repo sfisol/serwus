@@ -1,5 +1,7 @@
 #![deny(clippy::all)]
 
+#![feature(result_flattening)]
+
 #[cfg(feature = "pgsql")]
 #[macro_use] extern crate diesel;
 
