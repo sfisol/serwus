@@ -133,7 +133,7 @@ where
         .await
 }
 
-pub async fn test_init<T, F>(prepare_app_data: impl Fn() -> T, configure_app: F) -> impl Service<Request = Request, Response = ServiceResponse<Body>, Error = Error>
+pub async fn test_init<T, F>(prepare_app_data: impl Fn() -> T, configure_app: F) -> impl Service<Request, Response = ServiceResponse<Body>, Error = Error>
 where
     T: 'static,
     F: Fn(&mut web::ServiceConfig),

@@ -85,13 +85,13 @@ impl Default for StatsWrapper {
     }
 }
 
-impl<S, B> Transform<S> for StatsWrapper
+impl<S, B> Transform<S, ServiceRequest> for StatsWrapper
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
     S::Future: 'static,
     B: MessageBody,
 {
-    type Request = ServiceRequest;
+    // type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
     type InitError = ();
@@ -112,23 +112,23 @@ pub struct StatsMiddleware<S> {
     config: Rc<StatsConfig>,
 }
 
-impl<S, B> Service for StatsMiddleware<S>
+impl<S, B> Service<ServiceRequest> for StatsMiddleware<S>
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
     S::Future: 'static,
     B: MessageBody,
 {
-    type Request = ServiceRequest;
+    // type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
     #[allow(clippy::type_complexity)]
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>;
 
-    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+    fn poll_ready(&self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         self.service.poll_ready(cx)
     }
 
-    fn call(&mut self, req: Self::Request) -> Self::Future {
+    fn call(&self, req: ServiceRequest) -> Self::Future {
         let count_it = !self.config.excludes.contains(req.path());
 
         // Count request start-of-handling
