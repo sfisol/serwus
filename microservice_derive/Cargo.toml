@@ -1,6 +1,6 @@
 [package]
 name = "microservice_derive"
-version = "0.1.0"
+version = "0.1.0-rc.1"
 authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
 edition = "2018"
 
