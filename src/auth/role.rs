@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::io;
 
 #[derive(Debug, Clone, Serialize, Deserialize, AsExpression, FromSqlRow, PartialEq)]
+#[cfg_attr(feature = "swagger", derive(paperclip::actix::Apiv2Schema))]
 #[sql_type = "SmallInt"]
 pub enum Role {
     User = 0,
