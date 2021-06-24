@@ -16,7 +16,7 @@ pub fn init_default_pool() -> Result<Pool, Error> {
 pub fn init_pool(size: usize) -> Result<Pool, Error> {
     info!("Connecting to database");
 
-    let manager = ConnectionManager::<PgConnection>::new(database_url());
+    let manager = ConnectionManager::<PgConnection>::new(default_database_url());
 
     let max_size = if env::var("TEST").is_ok() && size > 2 {
         2
@@ -34,6 +34,10 @@ pub fn init_pool(size: usize) -> Result<Pool, Error> {
         })
 }
 
-pub(super) fn database_url() -> String {
-    env::var("DATABASE_URL").expect("DATABASE_URL must be set")
+pub(super) fn database_url(env_name: &str) -> String {
+    env::var(env_name).expect("DATABASE_URL must be set")
+}
+
+fn default_database_url() -> String {
+    database_url("DATABASE_URL")
 }
