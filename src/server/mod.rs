@@ -4,10 +4,10 @@ pub mod app_data;
 pub mod prometheus;
 
 use actix_cors::Cors;
-use actix_http::{body::Body, Request, Error};
+use actix_http::{body::Body, Request};
 use actix_service::Service;
 use actix_web::{
-    App, http, HttpServer, test,
+    App, http, HttpServer, test, Error,
     middleware::Logger,
     dev::ServiceResponse,
 };
@@ -117,9 +117,9 @@ where
             .data(app_data.clone())
             .data(stats.clone())
             .configure(configure_app)
+            .wrap(cors_factory())
             .wrap(Logger::default())
-            .wrap(StatsWrapper::default())
-            .wrap(cors_factory());
+            .wrap(StatsWrapper::default());
 
         #[cfg(feature = "swagger")]
         let app = app.build();

@@ -43,7 +43,7 @@ async fn fetch_jwks(uri: &str) -> Result<JWKS, String> {
 
 async fn validate_token(authority: &str, token: &str, jwks: &JWKS) -> Result<ValidJWT, ValidateError> {
     let validations = vec![Validation::Issuer(authority.to_string()), Validation::SubjectPresent];
-    let kid = match token_kid(&token) {
+    let kid = match token_kid(token) {
         Ok(Some(kid)) => kid,
         Ok(None) => return Err(ValidateError::NoKidInToken),
         Err(e) => return Err(ValidateError::Super(e)),

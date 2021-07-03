@@ -10,7 +10,7 @@ use actix_service::{Service, Transform};
 use futures::future::{Future, Ready, ok as fut_ok, FutureExt, TryFutureExt};
 use log::{debug, warn};
 
-use actix_web::dev::MessageBody;
+use actix_web::dev::{MessageBody, Body};
 use actix_web::error::Error;
 use actix_web::http::StatusCode;
 use actix_web::{
@@ -181,29 +181,29 @@ where
 pub async fn default_healthcheck_handler() -> &'static str { "" }
 
 /// Default readiness handler
-pub async fn default_readiness_handler<S, D>(service_data: web::Data<S>) -> Result<HttpResponse, Error>
+pub async fn default_readiness_handler<S, D>(service_data: web::Data<S>) -> Result<HttpResponse<Body>, Error>
 where
     D: AppDataWrapper,
     S: StatsPresenter<D>,
 {
     let fut_res = service_data.is_ready()
-        .then(|result|
+        .map(|result|
             match result {
-                Err(error) => HttpResponse::InternalServerError().body(format!("Can't check readiness: {}", error)),
-                Ok(true) => HttpResponse::Ok().finish(),
-                Ok(false) => HttpResponse::ServiceUnavailable().finish(),
+                Err(error) => HttpResponse::<Body>::build(StatusCode::INTERNAL_SERVER_ERROR).body(format!("Can't check readiness: {}", error)),
+                Ok(true) => HttpResponse::<Body>::build(StatusCode::OK).body("OK".to_string()),
+                Ok(false) => HttpResponse::<Body>::build(StatusCode::SERVICE_UNAVAILABLE).body("Not ready yet".to_string()),
             }
         );
-    fut_res.await
+    Ok(fut_res.await)
 }
 
 // Default stats handler
-pub async fn default_stats_handler<S, D>(base_data: web::Data<BaseStats>, service_data: web::Data<S>) -> Result<HttpResponse, Error>
+pub async fn default_stats_handler<S, D>(base_data: web::Data<BaseStats>, service_data: web::Data<S>) -> Result<HttpResponse<Body>, Error>
 where
     D: AppDataWrapper,
     S: StatsPresenter<D>,
 {
-    service_data.get_stats()
+    let fut_res = service_data.get_stats()
         .and_then(move |service_stats| {
             if let Ok(base_stats) = base_data.0.read() {
 
@@ -213,11 +213,13 @@ where
                     service: Some(service_stats),
                 };
 
-                HttpResponse::Ok().json(output)
+                fut_ok(HttpResponse::build(StatusCode::OK).body(serde_json::to_string(&output).unwrap()))
             } else {
-                HttpResponse::InternalServerError().body("Can't acquire stats (1)".to_string())
+                fut_ok(HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR).body("Can't acquire stats (1)".to_string()))
             }
-        }).await
+        });
+
+    fut_res.await
 }
 
 #[derive(Serialize)]
