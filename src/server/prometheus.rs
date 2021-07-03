@@ -1,19 +1,21 @@
+use actix_web::dev::Body;
 use actix_web::{
     error::Error,
     web::{self, HttpResponse},
 };
-use futures::{Future, TryFutureExt};
+use actix_web::http::StatusCode;
+use futures::future::{ok as fut_ok, TryFutureExt};
 use serde::Serialize;
 
 use super::stats::{StatsPresenter, AppDataWrapper, StatsOutput, BaseStatsInner, BaseStats};
 
 // Prometheus stats handler
-pub fn prometheus_stats_handler<S, D>(base_data: web::Data<BaseStats>, service_data: web::Data<S>) -> impl Future<Output=Result<HttpResponse, Error>>
+pub async fn prometheus_stats_handler<S, D>(base_data: web::Data<BaseStats>, service_data: web::Data<S>) -> Result<HttpResponse<Body>, Error>
 where
     D: AppDataWrapper,
     S: StatsPresenter<D>,
 {
-    service_data.get_stats()
+    let fut_res = service_data.get_stats()
         .and_then(move |service_stats| {
             if let Ok(base_stats) = base_data.0.read() {
 
@@ -23,11 +25,13 @@ where
                     service: Some(service_stats),
                 };
 
-                HttpResponse::Ok().body(output.as_prometheus().join("\n"))
+                fut_ok(HttpResponse::build(StatusCode::OK).body(output.as_prometheus().join("\n")))
             } else {
-                HttpResponse::InternalServerError().body("Can't acquire stats (1)".to_string())
+                fut_ok(HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR).body("Can't acquire stats (1)".to_string()))
             }
-        })
+        });
+
+    fut_res.await
 }
 
 pub trait AsPrometheus {

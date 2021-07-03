@@ -10,16 +10,16 @@ rs256_jwks = ["alcoholic_jwt"]
 default = ["pgsql", "auth"]
 pgsql = ["diesel", "r2d2", "r2d2-diesel"]
 multidb = ["pgsql", "weighted-rs"]
-swagger = ["paperclip", "serde_json"]
+swagger = ["paperclip"]
 prometheus = []
 
 [dependencies]
-actix = "0.11"
-actix-cors = "0.6.0-beta.1"
-actix-http = "3.0.0-beta.5"
-actix-service = "2.0.0-beta.4"
-actix-web = "4.0.0-beta.5"
-awc = "3.0.0-beta.4"
+actix = "0.12"
+actix-cors = "0.6.0-beta.2"
+actix-http = "3.0.0-beta.8"
+actix-service = "2.0.0"
+actix-web = "4.0.0-beta.8"
+awc = "3.0.0-beta.7"
 alcoholic_jwt = { version = "1.0", optional = true }
 bytes = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
@@ -34,7 +34,7 @@ paperclip = { version = "0.5", features = ["actix", "rust_decimal", "chrono"], o
 r2d2-diesel = { version = "1.0", optional = true }
 r2d2 = { version = "0.8", optional = true }
 serde = "1"
-serde_json = { version = "1", optional = true }
+serde_json = { version = "1" }
 serde_derive = "1"
 weighted-rs = { version = "0.1", optional = true }
 validator = "0.12"
@@ -42,5 +42,5 @@ colored = "2.0"
 
 [patch.crates-io]
 # paperclip = { git = "https://github.com/wafflespeanut/paperclip" }
-paperclip = { git = "https://github.com/sfisol/paperclip", branch = "actix4" }
+paperclip = { git = "https://github.com/sfisol/paperclip", branch = "actix4-multipart" }
 # paperclip = { path = "../paperclip" }
