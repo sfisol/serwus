@@ -6,7 +6,7 @@ use paperclip::actix::Apiv2Schema;
 
 use serde::{Serialize, Deserialize};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Clone, Deserialize, Debug)]
 #[cfg_attr(feature = "swagger", derive(Apiv2Schema))]
 #[serde(rename_all = "camelCase")]
 pub struct ListResponse<T> {
