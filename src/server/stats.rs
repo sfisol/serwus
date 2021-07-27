@@ -10,11 +10,11 @@ use actix_service::{Service, Transform};
 use futures::future::{Future, Ready, ok as fut_ok, FutureExt, TryFutureExt};
 use log::{debug, warn};
 
-use actix_web::dev::{MessageBody, Body};
+use actix_web::dev::MessageBody;
 use actix_web::error::Error;
 use actix_web::http::StatusCode;
 use actix_web::{
-    web::{self, HttpResponse},
+    web, HttpResponse,
     dev::{ServiceRequest, ServiceResponse}
 };
 
@@ -181,7 +181,7 @@ where
 pub async fn default_healthcheck_handler() -> &'static str { "" }
 
 /// Default readiness handler
-pub async fn default_readiness_handler<S, D>(service_data: web::Data<S>) -> Result<HttpResponse<Body>, Error>
+pub async fn default_readiness_handler<S, D>(service_data: web::Data<S>) -> Result<HttpResponse, Error>
 where
     D: AppDataWrapper,
     S: StatsPresenter<D>,
@@ -189,16 +189,16 @@ where
     let fut_res = service_data.is_ready()
         .map(|result|
             match result {
-                Err(error) => HttpResponse::<Body>::build(StatusCode::INTERNAL_SERVER_ERROR).body(format!("Can't check readiness: {}", error)),
-                Ok(true) => HttpResponse::<Body>::build(StatusCode::OK).body("OK".to_string()),
-                Ok(false) => HttpResponse::<Body>::build(StatusCode::SERVICE_UNAVAILABLE).body("Not ready yet".to_string()),
+                Err(error) => HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR).body(format!("Can't check readiness: {}", error)),
+                Ok(true) => HttpResponse::build(StatusCode::OK).body("OK".to_string()),
+                Ok(false) => HttpResponse::build(StatusCode::SERVICE_UNAVAILABLE).body("Not ready yet".to_string()),
             }
         );
     Ok(fut_res.await)
 }
 
 // Default stats handler
-pub async fn default_stats_handler<S, D>(base_data: web::Data<BaseStats>, service_data: web::Data<S>) -> Result<HttpResponse<Body>, Error>
+pub async fn default_stats_handler<S, D>(base_data: web::Data<BaseStats>, service_data: web::Data<S>) -> Result<HttpResponse, Error>
 where
     D: AppDataWrapper,
     S: StatsPresenter<D>,
