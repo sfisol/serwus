@@ -1174,7 +1174,7 @@ dependencies = [
 [[package]]
 name = "paperclip"
 version = "0.5.0"
-source = "git+https://github.com/sfisol/paperclip?branch=actix4-multipart#a99be7d559f43bc90035069271b026cacc122370"
+source = "git+https://github.com/sfisol/paperclip?branch=actix4-multipart-files-session#7bb0662d1bfb7340b986105b7d8adbe088cc9fd7"
 dependencies = [
  "anyhow",
  "itertools",
@@ -1183,7 +1183,7 @@ dependencies = [
  "paperclip-core",
  "paperclip-macros",
  "parking_lot",
- "semver 0.11.0",
+ "semver 0.9.0",
  "serde",
  "serde_derive",
  "serde_json",
@@ -1195,7 +1195,7 @@ dependencies = [
 [[package]]
 name = "paperclip-actix"
 version = "0.3.0"
-source = "git+https://github.com/sfisol/paperclip?branch=actix4-multipart#a99be7d559f43bc90035069271b026cacc122370"
+source = "git+https://github.com/sfisol/paperclip?branch=actix4-multipart-files-session#7bb0662d1bfb7340b986105b7d8adbe088cc9fd7"
 dependencies = [
  "actix-service 1.0.6",
  "actix-service 2.0.0",
@@ -1211,7 +1211,7 @@ dependencies = [
 [[package]]
 name = "paperclip-core"
 version = "0.3.0"
-source = "git+https://github.com/sfisol/paperclip?branch=actix4-multipart#a99be7d559f43bc90035069271b026cacc122370"
+source = "git+https://github.com/sfisol/paperclip?branch=actix4-multipart-files-session#7bb0662d1bfb7340b986105b7d8adbe088cc9fd7"
 dependencies = [
  "actix-web",
  "chrono",
@@ -1231,7 +1231,7 @@ dependencies = [
 [[package]]
 name = "paperclip-macros"
 version = "0.4.0"
-source = "git+https://github.com/sfisol/paperclip?branch=actix4-multipart#a99be7d559f43bc90035069271b026cacc122370"
+source = "git+https://github.com/sfisol/paperclip?branch=actix4-multipart-files-session#7bb0662d1bfb7340b986105b7d8adbe088cc9fd7"
 dependencies = [
  "heck",
  "http",

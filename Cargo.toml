@@ -42,5 +42,5 @@ colored = "2.0"
 
 [patch.crates-io]
 # paperclip = { git = "https://github.com/wafflespeanut/paperclip" }
-paperclip = { git = "https://github.com/sfisol/paperclip", branch = "actix4-multipart" }
+paperclip = { git = "https://github.com/sfisol/paperclip", branch = "actix4-multipart-files-session" }
 # paperclip = { path = "../paperclip" }
