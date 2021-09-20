@@ -1,13 +1,10 @@
 #[cfg(feature = "pgsql")]
 pub mod as_map;
 
-#[cfg(feature = "swagger")]
-use paperclip::actix::Apiv2Schema;
-
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Clone, Deserialize, Debug)]
-#[cfg_attr(feature = "swagger", derive(Apiv2Schema))]
+#[cfg_attr(feature = "swagger", derive(paperclip::actix::Apiv2Schema))]
 #[serde(rename_all = "camelCase")]
 pub struct ListResponse<T> {
     pub total: i64,
@@ -20,4 +17,11 @@ where
     X: Into<Y>
 {
     arg.into_iter().map(X::into).collect::<Vec<Y>>()
+}
+
+pub fn filtermute<X, Y>(arg: Vec<X>) -> Vec<Y>
+where
+    X: Into<Option<Y>>
+{
+    arg.into_iter().filter_map(X::into).collect::<Vec<Y>>()
 }

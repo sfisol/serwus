@@ -1,0 +1,9 @@
+[package]
+name = "microservice-utils"
+version = "0.1.0-rc.2"
+authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
+edition = "2018"
+
+[dependencies]
+serde = "1"
+validator = "0.12"

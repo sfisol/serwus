@@ -114,8 +114,12 @@ where
         };
 
         let app = app
-            .data(app_data.clone())
-            .data(stats.clone())
+            .app_data(web::Data::new(app_data.clone()))
+
+            // Needs to be added in two waysin actix 4, maybe because of: https://github.com/actix/actix-web/issues/1790
+            .app_data(web::Data::new(stats.clone()))
+            .app_data(stats.clone())
+
             .configure(configure_app)
             .wrap(cors_factory())
             .wrap(Logger::default())
@@ -148,7 +152,7 @@ where
         let app = app.wrap_api();
 
         let app = app
-            .data(app_data)
+            .app_data(app_data)
             .configure(configure_app);
 
         #[cfg(feature = "swagger")]
