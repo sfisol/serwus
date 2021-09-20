@@ -1,0 +1,12 @@
+[package]
+name = "microservice-containers"
+version = "0.1.0-rc.2"
+authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
+edition = "2018"
+
+[features]
+pgsql = ["diesel"]
+
+[dependencies]
+diesel = { version = "1.4", features = ["postgres", "chrono"], optional = true }
+serde = "1"

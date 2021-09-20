@@ -213,7 +213,10 @@ where
                     service: Some(service_stats),
                 };
 
-                fut_ok(HttpResponse::build(StatusCode::OK).body(serde_json::to_string(&output).unwrap()))
+                fut_ok(HttpResponse::build(StatusCode::OK)
+                    .content_type("application/json")
+                    .body(serde_json::to_string(&output).unwrap())
+                )
             } else {
                 fut_ok(HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR).body("Can't acquire stats (1)".to_string()))
             }
