@@ -11,11 +11,11 @@ pub fn logger_level() -> String {
 }
 
 impl log::Log for ConsoleLogger {
-    fn enabled(&self, metadata: &Metadata) -> bool {
+    fn enabled(&self, metadata: &Metadata<'_>) -> bool {
         metadata.level() <= Level::Info || logger_level() == "debug"
     }
 
-    fn log(&self, record: &Record) {
+    fn log(&self, record: &Record<'_>) {
         let now = Utc::now();
         let hour = now.hour();
         let (_, year) = now.year_ce();

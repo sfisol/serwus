@@ -4,10 +4,11 @@ pub mod app_data;
 pub mod prometheus;
 
 use actix_cors::Cors;
-use actix_http::{body::Body, Request};
+use actix_http::Request;
 use actix_service::Service;
 use actix_web::{
     App, http, HttpServer, test, Error,
+    body::BoxBody,
     middleware::Logger,
     dev::ServiceResponse,
 };
@@ -48,7 +49,7 @@ pub async fn start<D, T, F>
 ) -> io::Result<()>
 where
     D: AppDataWrapper + 'static,
-    T: StatsPresenter<D> + 'static + Clone + Send,
+    T: StatsPresenter<D> + 'static + Clone + Send + Sync,
     F: Fn(&mut web::ServiceConfig) + Send + Clone + Copy + 'static,
 {
     start_with_cors(
@@ -70,7 +71,7 @@ pub async fn start_with_cors<D, T, F, C>
 ) -> io::Result<()>
 where
     D: AppDataWrapper + 'static,
-    T: StatsPresenter<D> + 'static + Clone + Send,
+    T: StatsPresenter<D> + 'static + Clone + Send + Sync,
     F: Fn(&mut web::ServiceConfig) + Send + Clone + Copy + 'static,
     C: Fn() -> Cors + Send + Clone + 'static,
 {
@@ -86,9 +87,8 @@ where
     let numthreads = threads::num_threads();
     info!("Configuring for {} threads", numthreads);
 
-    let app_data = prepare_app_data();
-
-    let stats = BaseStats::default();
+    let app_data = web::Data::new(prepare_app_data());
+    let stats = web::Data::new(BaseStats::default());
 
     #[allow(unused)]
     let prod_env = run_env == "prod";
@@ -97,6 +97,8 @@ where
     #[allow(clippy::let_and_return)]
     HttpServer::new(move || {
         let app = App::new()
+            .app_data(app_data.clone())
+            .app_data(stats.clone())
             .route("_healthcheck", actix_web::web::get().to(default_healthcheck_handler))
             .route("_ready", actix_web::web::get().to(default_readiness_handler::<T, D>))
             .route("_stats", actix_web::web::get().to(default_stats_handler::<T, D>));
@@ -111,16 +113,11 @@ where
         } else {
             app.wrap_api()
                 .with_json_spec_at("/spec")
+                .with_swagger_ui_at("/swagger")
         };
 
-        let app = app
-            .app_data(web::Data::new(app_data.clone()))
+        let app = app.configure(configure_app)
 
-            // Needs to be added in two waysin actix 4, maybe because of: https://github.com/actix/actix-web/issues/1790
-            .app_data(web::Data::new(stats.clone()))
-            .app_data(stats.clone())
-
-            .configure(configure_app)
             .wrap(cors_factory())
             .wrap(Logger::default())
             .wrap(StatsWrapper::default());
@@ -137,7 +134,7 @@ where
         .await
 }
 
-pub async fn test_init<T, F>(prepare_app_data: impl Fn() -> T, configure_app: F) -> impl Service<Request, Response = ServiceResponse<Body>, Error = Error>
+pub async fn test_init<T, F>(prepare_app_data: impl Fn() -> T, configure_app: F) -> impl Service<Request, Response = ServiceResponse<BoxBody>, Error = Error>
 where
     T: 'static,
     F: Fn(&mut web::ServiceConfig),

@@ -43,21 +43,25 @@ impl<'a> Default for MultiPoolBuilder<'a> {
 }
 
 impl<'a> MultiPoolBuilder<'a> {
+    #[must_use]
     pub fn size(mut self, size: usize) -> Self {
         self.size = size;
         self
     }
 
+    #[must_use]
     pub fn write_url_env(mut self, write_url_env: &'a str) -> Self {
         self.write_url_env = write_url_env;
         self
     }
 
+    #[must_use]
     pub fn read_url_env(mut self, read_url_env: &'a str) -> Self {
         self.read_url_env = read_url_env;
         self
     }
 
+    #[must_use]
     pub fn readonly(mut self) -> Self {
         self.read_only = true;
         self

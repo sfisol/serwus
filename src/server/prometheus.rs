@@ -1,4 +1,4 @@
-use actix_web::dev::Body;
+use actix_web::body::BoxBody;
 use actix_web::{
     error::Error,
     web::{self, HttpResponse},
@@ -10,7 +10,7 @@ use serde::Serialize;
 use super::stats::{StatsPresenter, AppDataWrapper, StatsOutput, BaseStatsInner, BaseStats};
 
 // Prometheus stats handler
-pub async fn prometheus_stats_handler<S, D>(base_data: web::Data<BaseStats>, service_data: web::Data<S>) -> Result<HttpResponse<Body>, Error>
+pub async fn prometheus_stats_handler<S, D>(base_data: web::Data<BaseStats>, service_data: web::Data<S>) -> Result<HttpResponse<BoxBody>, Error>
 where
     D: AppDataWrapper,
     S: StatsPresenter<D>,

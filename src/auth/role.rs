@@ -21,7 +21,7 @@ impl<DB: Backend> ToSql<SmallInt, DB> for Role
 where
     i16: ToSql<SmallInt, DB>,
 {
-    fn to_sql<W>(&self, out: &mut Output<W, DB>) -> serialize::Result
+    fn to_sql<W>(&self, out: &mut Output<'_, W, DB>) -> serialize::Result
     where
         W: io::Write,
     {
