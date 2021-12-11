@@ -2,7 +2,7 @@
 name = "microservice"
 version = "0.1.0-rc.2"
 authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
-edition = "2018"
+edition = "2021"
 
 [workspace]
 members = [
@@ -23,13 +23,13 @@ prometheus = []
 
 [dependencies]
 actix = "0.12"
-actix-cors = "0.6.0-beta.2"
-actix-http = "3.0.0-beta.8"
-actix-service = "2.0.0"
-actix-web = "4.0.0-beta.8"
-awc = "3.0.0-beta.7"
+actix-cors = "0.6.0-beta.8"
+actix-http = "3.0.0-beta.17"
+actix-service = "2.0"
+actix-web = "4.0.0-beta.18"
+awc = "3.0.0-beta.17"
 alcoholic_jwt = { version = "1.0", optional = true }
-bytes = "1.0"
+bytes = "1"
 chrono = { version = "0.4", features = ["serde"] }
 diesel = { version = "1.4", features = ["postgres", "chrono"], optional = true }
 dotenv = "0.15"
@@ -39,7 +39,7 @@ log = "0.4"
 microservice-containers = { path = "microservice-containers" }
 microservice-derive = { path = "microservice-derive" }
 num_cpus = "1"
-paperclip = { version = "0.5", features = ["actix", "rust_decimal", "chrono"], optional = true }
+paperclip = { version = "0.6", features = ["actix", "rust_decimal", "chrono", "swagger-ui"], optional = true }
 r2d2-diesel = { version = "1.0", optional = true }
 r2d2 = { version = "0.8", optional = true }
 serde = "1"
@@ -49,5 +49,5 @@ colored = "2.0"
 
 [patch.crates-io]
 # paperclip = { git = "https://github.com/wafflespeanut/paperclip" }
-paperclip = { git = "https://github.com/sfisol/paperclip", branch = "actix4-multipart-files-session" }
+paperclip = { git = "https://github.com/sfisol/paperclip", branch = "actix4-beta18-multipart-files-session" }
 # paperclip = { path = "../paperclip" }

@@ -10,13 +10,19 @@ use actix_service::{Service, Transform};
 use futures::future::{Future, Ready, ok as fut_ok, FutureExt, TryFutureExt};
 use log::{debug, warn};
 
-use actix_web::dev::MessageBody;
+use actix_web::body::MessageBody;
 use actix_web::error::Error;
 use actix_web::http::StatusCode;
 use actix_web::{
-    web, HttpResponse,
+    HttpResponse,
     dev::{ServiceRequest, ServiceResponse}
 };
+
+#[cfg(not(feature = "swagger"))]
+use actix_web::web;
+
+#[cfg(feature = "swagger")]
+use paperclip::actix::web;
 
 use serde::Serialize;
 
@@ -132,7 +138,7 @@ where
         let count_it = !self.config.excludes.contains(req.path());
 
         // Count request start-of-handling
-        let stats_arc_for_request = req.app_data::<BaseStats>();
+        let stats_arc_for_request = req.app_data::<web::Data<BaseStats>>();
 
         if count_it {
             if let Some(stats_arc) = stats_arc_for_request {
@@ -159,7 +165,7 @@ where
 
             if count_it {
                 // Try to acquire strong Arc to stats again
-                if let Some(stats_arc) = stats_arc_for_response.map(|wbs| Weak::upgrade(&wbs)).flatten() {
+                if let Some(stats_arc) = stats_arc_for_response.and_then(|wbs| Weak::upgrade(&wbs)) {
                     if let Ok(mut stats) = stats_arc.write() {
                         stats.request_finished += 1;
                         let left = stats.request_started - stats.request_finished;

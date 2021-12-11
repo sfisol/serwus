@@ -1,3 +1,4 @@
+// #![deny(rust_2018_idioms)]
 #![deny(clippy::all)]
 
 #![feature(result_flattening)]
