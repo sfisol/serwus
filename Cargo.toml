@@ -16,9 +16,9 @@ members = [
 auth = ["jsonwebtoken"]
 rs256_jwks = ["alcoholic_jwt"]
 default = ["pgsql", "auth"]
-pgsql = ["microservice-containers/pgsql", "diesel", "r2d2", "r2d2-diesel"]
+pgsql = ["diesel", "microservice-containers/diesel", "r2d2", "r2d2-diesel"]
 multidb = ["pgsql", "weighted-rs"]
-swagger = ["paperclip"]
+swagger = ["paperclip", "microservice-containers/swagger"]
 prometheus = []
 
 [dependencies]

@@ -1,6 +1,8 @@
 #[cfg(feature = "pgsql")]
 pub mod as_map;
 
+pub mod role;
+
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Clone, Deserialize, Debug)]
