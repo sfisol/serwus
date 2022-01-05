@@ -7,7 +7,6 @@
 #[macro_use] extern crate diesel;
 
 pub mod auth;
-
 #[cfg(feature = "pgsql")]
 pub mod db_pool;
 

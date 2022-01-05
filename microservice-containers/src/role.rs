@@ -1,3 +1,4 @@
+#[cfg(feature = "diesel")]
 use diesel::{
     sql_types::SmallInt,
     backend::Backend,
@@ -5,11 +6,14 @@ use diesel::{
     serialize::{self, ToSql, Output},
 };
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "diesel")]
 use std::io;
 
-#[derive(Debug, Clone, Serialize, Deserialize, AsExpression, FromSqlRow, PartialEq)]
-#[cfg_attr(feature = "swagger", derive(paperclip::actix::Apiv2Schema))]
-#[sql_type = "SmallInt"]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[cfg_attr(feature = "diesel", derive(diesel::AsExpression))]
+#[cfg_attr(feature = "diesel", derive(diesel::FromSqlRow))]
+#[cfg_attr(feature = "diesel", sql_type = "SmallInt")]
+#[cfg_attr(feature = "paperclip", derive(paperclip::actix::Apiv2Schema))]
 pub enum Role {
     User = 0,
     Admin = 1,
@@ -17,6 +21,7 @@ pub enum Role {
     Tester = 3,
 }
 
+#[cfg(feature = "diesel")]
 impl<DB: Backend> ToSql<SmallInt, DB> for Role
 where
     i16: ToSql<SmallInt, DB>,
@@ -35,6 +40,7 @@ where
     }
 }
 
+#[cfg(feature = "diesel")]
 impl<DB: Backend> FromSql<SmallInt, DB> for Role
 where
     i16: FromSql<SmallInt, DB>,
