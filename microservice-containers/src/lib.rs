@@ -4,6 +4,9 @@
 #[cfg(feature = "pgsql")]
 pub mod as_map;
 
+mod password;
+pub use password::*;
+
 pub mod role;
 
 use serde::{Serialize, Deserialize};
