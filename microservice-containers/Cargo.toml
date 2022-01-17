@@ -2,7 +2,7 @@
 name = "microservice-containers"
 version = "0.1.0-rc.2"
 authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
-edition = "2018"
+edition = "2021"
 
 [features]
 swagger = [ "paperclip", "serde_json" ]
