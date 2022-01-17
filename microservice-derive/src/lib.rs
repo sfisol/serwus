@@ -1,10 +1,9 @@
 // Empty implementation for statsPresenter
 
+#![deny(rust_2018_idioms)]
 #![warn(clippy::all)]
 
-extern crate proc_macro;
-
-use crate::proc_macro::TokenStream;
+use proc_macro::TokenStream;
 use quote::quote;
 
 #[proc_macro_derive(EmptyStats)]

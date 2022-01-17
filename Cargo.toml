@@ -15,19 +15,21 @@ members = [
 [features]
 auth = ["jsonwebtoken"]
 rs256_jwks = ["alcoholic_jwt"]
-default = ["pgsql", "auth"]
+# default = ["pgsql", "auth"]
+default = ["pgsql", "auth", "swagger"]
 pgsql = ["diesel", "microservice-containers/diesel", "r2d2", "r2d2-diesel"]
 multidb = ["pgsql", "weighted-rs"]
 swagger = ["paperclip", "microservice-containers/swagger"]
 prometheus = []
 
 [dependencies]
-actix = "0.12"
-actix-cors = "0.6.0-beta.8"
-actix-http = "3.0.0-beta.17"
-actix-service = "2.0"
-actix-web = "4.0.0-beta.18"
-awc = "3.0.0-beta.17"
+actix = "=0.12"
+actix-router = "=0.5.0-beta.4" # Remove this dependency after switching to actix-web-4.0.0-beta.19 or newer
+actix-cors = "=0.6.0-beta.8"
+actix-http = "=3.0.0-beta.17"
+actix-service = "=2.0"
+actix-web = "=4.0.0-beta.18"
+awc = "=3.0.0-beta.17"
 alcoholic_jwt = { version = "1.0", optional = true }
 bytes = "1"
 chrono = { version = "0.4", features = ["serde"] }

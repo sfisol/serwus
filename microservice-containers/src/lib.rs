@@ -1,3 +1,6 @@
+#![deny(rust_2018_idioms)]
+#![warn(clippy::all)]
+
 #[cfg(feature = "pgsql")]
 pub mod as_map;
 
