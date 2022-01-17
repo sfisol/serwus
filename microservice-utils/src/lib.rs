@@ -2,8 +2,18 @@
 #![deny(clippy::all)]
 
 pub mod email;
+
+#[cfg(feature = "auth")]
+pub mod hash_password;
+
+mod generate_code;
+pub use generate_code::generate_code;
+
 pub mod validation;
-#[cfg(feature = "pgsql")]
-pub mod pagination;
+
 mod string_utils;
+
+mod sanitize;
+pub use sanitize::*;
+
 pub mod wrap_display;

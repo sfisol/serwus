@@ -50,7 +50,7 @@ pub async fn start<D, T, F>
 where
     D: AppDataWrapper + 'static,
     T: StatsPresenter<D> + 'static + Clone + Send + Sync,
-    F: Fn(&mut web::ServiceConfig<'_>) + Send + Clone + Copy + 'static,
+    F: Fn(&mut web::ServiceConfig) + Send + Clone + Copy + 'static,
 {
     start_with_cors(
         prepare_app_data,
@@ -72,7 +72,7 @@ pub async fn start_with_cors<D, T, F, C>
 where
     D: AppDataWrapper + 'static,
     T: StatsPresenter<D> + 'static + Clone + Send + Sync,
-    F: Fn(&mut web::ServiceConfig<'_>) + Send + Clone + Copy + 'static,
+    F: Fn(&mut web::ServiceConfig) + Send + Clone + Copy + 'static,
     C: Fn() -> Cors + Send + Clone + 'static,
 {
     dotenv().ok();
@@ -137,7 +137,7 @@ where
 pub async fn test_init<T, F>(prepare_app_data: impl Fn() -> T, configure_app: F) -> impl Service<Request, Response = ServiceResponse<BoxBody>, Error = Error>
 where
     T: 'static,
-    F: Fn(&mut web::ServiceConfig<'_>),
+    F: Fn(&mut web::ServiceConfig),
 {
     let app_data = prepare_app_data();
 
