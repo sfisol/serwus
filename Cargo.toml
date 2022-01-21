@@ -23,11 +23,11 @@ prometheus = []
 
 [dependencies]
 actix = "=0.12"
-actix-router = "=0.5.0-beta.4" # Remove this dependency after switching to actix-web-4.0.0-beta.19 or newer
+actix-router = "=0.5.0-rc.1" # Remove this dependency after switching to actix-web-4.0.0-beta.19 or newer
 actix-cors = "=0.6.0-beta.8"
-actix-http = "=3.0.0-beta.17"
+actix-http = "=3.0.0-beta.18"
 actix-service = "=2.0"
-actix-web = "=4.0.0-beta.18"
+actix-web = "=4.0.0-beta.20"
 awc = "=3.0.0-beta.17"
 alcoholic_jwt = { version = "1.0", optional = true }
 bytes = "1"
@@ -50,5 +50,5 @@ colored = "2.0"
 
 [patch.crates-io]
 # paperclip = { git = "https://github.com/wafflespeanut/paperclip" }
-paperclip = { git = "https://github.com/sfisol/paperclip", branch = "actix4-beta18-multipart-files-session" }
+paperclip = { git = "https://github.com/sfisol/paperclip", branch = "actix4-beta20-multipart-files-session" }
 # paperclip = { path = "../paperclip" }
