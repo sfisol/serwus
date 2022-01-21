@@ -61,9 +61,9 @@ dependencies = [
 
 [[package]]
 name = "actix-http"
-version = "3.0.0-beta.17"
+version = "3.0.0-beta.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dac76407e2be239b5e544c9d83bdac4a0d68ae188031ac0424aa3e4868a669be"
+checksum = "05b95871724d27ac9a23d6db3246b23e4e42cd44a23145e1c6b04b78fb5271da"
 dependencies = [
  "actix-codec",
  "actix-rt",
@@ -108,9 +108,9 @@ dependencies = [
 
 [[package]]
 name = "actix-router"
-version = "0.5.0-beta.4"
+version = "0.5.0-rc.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b53c1deabdbf3a8a8b9a949123edd3cafb873abd75da96b5933a8b590f9d6dc2"
+checksum = "4bdca166b1041184e2108ef05bd9909ec18cc6abc41152d31d30224cebfaac75"
 dependencies = [
  "bytestring",
  "firestorm",
@@ -200,9 +200,9 @@ dependencies = [
 
 [[package]]
 name = "actix-web"
-version = "4.0.0-beta.18"
+version = "4.0.0-beta.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a542a92e385844d988b34f1af289dbb0ca927c23740076a56fdf770b1af69fbc"
+checksum = "aa8ba5081e9f8d0016cf34df516c699198158fd8c77990aa284115b055ead61b"
 dependencies = [
  "actix-codec",
  "actix-http",
@@ -1263,7 +1263,7 @@ dependencies = [
 [[package]]
 name = "paperclip"
 version = "0.6.1"
-source = "git+https://github.com/sfisol/paperclip?branch=actix4-beta18-multipart-files-session#2b15ff3a885c1b6bebc4747bcbdec12c788b6544"
+source = "git+https://github.com/sfisol/paperclip?branch=actix4-beta20-multipart-files-session#2d1da12c8e9885ee4bd1b1aa5d7d138c157c5514"
 dependencies = [
  "anyhow",
  "itertools",
@@ -1284,7 +1284,7 @@ dependencies = [
 [[package]]
 name = "paperclip-actix"
 version = "0.4.2"
-source = "git+https://github.com/sfisol/paperclip?branch=actix4-beta18-multipart-files-session#2b15ff3a885c1b6bebc4747bcbdec12c788b6544"
+source = "git+https://github.com/sfisol/paperclip?branch=actix4-beta20-multipart-files-session#2d1da12c8e9885ee4bd1b1aa5d7d138c157c5514"
 dependencies = [
  "actix-service 1.0.6",
  "actix-service 2.0.2",
@@ -1301,7 +1301,7 @@ dependencies = [
 [[package]]
 name = "paperclip-core"
 version = "0.4.1"
-source = "git+https://github.com/sfisol/paperclip?branch=actix4-beta18-multipart-files-session#2b15ff3a885c1b6bebc4747bcbdec12c788b6544"
+source = "git+https://github.com/sfisol/paperclip?branch=actix4-beta20-multipart-files-session#2d1da12c8e9885ee4bd1b1aa5d7d138c157c5514"
 dependencies = [
  "actix-web",
  "chrono",
@@ -1321,7 +1321,7 @@ dependencies = [
 [[package]]
 name = "paperclip-macros"
 version = "0.5.1"
-source = "git+https://github.com/sfisol/paperclip?branch=actix4-beta18-multipart-files-session#2b15ff3a885c1b6bebc4747bcbdec12c788b6544"
+source = "git+https://github.com/sfisol/paperclip?branch=actix4-beta20-multipart-files-session#2d1da12c8e9885ee4bd1b1aa5d7d138c157c5514"
 dependencies = [
  "heck",
  "http",
