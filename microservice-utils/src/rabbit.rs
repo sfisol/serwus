@@ -3,9 +3,9 @@ use actix::{
     dev::ToEnvelope,
 };
 use actix_web::rt::task::spawn_blocking;
-use amiquip::{Connection, ConsumerMessage, ConsumerOptions, QueueDeclareOptions};
+use amiquip::{Channel, Connection, ConfirmSmoother, ConsumerMessage, ConsumerOptions, Exchange, QueueDeclareOptions, Publish};
 use log::{error, info};
-use serde::de::DeserializeOwned;
+use serde::{de::DeserializeOwned, Serialize};
 
 pub fn spawn_rabbit_consumer<T, A>(act: Addr<A>, connection: &mut Connection, queue_name: &'static str)
 where
@@ -17,7 +17,7 @@ where
     info!("Rabbit consumer starting...");
 
     // Open a channel - None says let the library choose the channel ID.
-    let channel = match connection.open_channel(Some(1)) {
+    let channel = match connection.open_channel(None) {
         Ok(ch) => ch,
         Err(err) => panic!("Error while opening channel: {}", err),
     };
@@ -65,4 +65,72 @@ where
             }
         }
     });
+}
+
+pub enum SendError {
+    Channel(amiquip::Error),
+    Serde(serde_json::Error),
+    Publish(amiquip::Error),
+    Confirm(crossbeam_channel::RecvError),
+}
+
+pub fn send_and_wait_for_ack(msg: impl Serialize, channel: &Channel, queue_name: &'static str) -> Result<(), SendError> {
+    // Mock responding with PASS
+    let exchange = Exchange::direct(channel);
+
+    // register a pub confirm listener before putting the channel into confirm mode
+    let confirm_listener = match channel.listen_for_publisher_confirms() {
+        Ok(c_l) => c_l,
+        Err(err) => {
+            error!("Error while registering confirm listener in rabbitmq: {}", err);
+            return Err(SendError::Channel(err))
+        }
+    };
+
+    // put channel in confirm mode
+    channel.enable_publisher_confirms().unwrap(); // TODO:
+
+    // create a confirm smoother so we can process perfectly sequential confirmations
+    let mut confirm_smoother = ConfirmSmoother::new();
+
+
+    // Serialize struct
+    let data = match serde_json::to_string(&msg) {
+        Ok(data) => data,
+        Err(err) => return Err(SendError::Serde(err))
+    };
+
+    // Publish message to the queue.
+    match exchange.publish(Publish::new(data.as_bytes(), queue_name)) {
+        Ok(_) => {
+            info!("Queue {}: Message published.", queue_name);
+        },
+        Err(err) => {
+            error!("Queue {}: Error while publishing message to rabbitmq: {}", queue_name, err);
+            return Err(SendError::Publish(err))
+        }
+    };
+
+    info!("Queue {}: Waiting for confirmation...", queue_name);
+    // wait for confirmation from the server for those 1 messages
+    let mut confirmed = 0;
+    while confirmed == 0 {
+        let confirm = match confirm_listener.recv() {
+            Ok(confirm) => {
+                info!("Confirmed!");
+                confirm
+            },
+            Err(err) => {
+                error!("Queue {}: Error while confirming recv: {:?}", queue_name, err);
+                return Err(SendError::Confirm(err))
+            }
+        };
+        println!("got raw confirm {:?} from server", confirm);
+        for confirm in confirm_smoother.process(confirm) {
+            info!("Queue {}: Message confirmed: {:?}", queue_name, confirm);
+            confirmed += 1;
+        }
+    };
+
+    Ok(())
 }
