@@ -19,7 +19,7 @@ pub async fn validate_credentials(authority: &str, access_token: String, id_toke
     let uri = format!("{}/{}", authority, ".well-known/jwks.json");
     let jwks = fetch_jwks(&uri)
         .await
-        .expect("failed to fetch jwks");
+        .map_err(CredentialsError::JwksFetch)?;
 
     validate_token(authority, &access_token, &jwks)
         .await
