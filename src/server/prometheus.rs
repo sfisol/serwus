@@ -1,8 +1,5 @@
 use actix_web::body::BoxBody;
-use actix_web::{
-    error::Error,
-    web::{self, HttpResponse},
-};
+use actix_web::{error::Error, HttpResponse, web};
 use actix_web::http::StatusCode;
 use futures::future::{ok as fut_ok, TryFutureExt};
 use serde::Serialize;

@@ -1,10 +1,13 @@
+#[cfg(feature = "actix_validation")]
 use actix_web::error;
 use serde::{Deserialize, Serialize};
 use std::{
     borrow::Cow,
     collections::HashMap,
 };
-use validator::{ValidationErrors, ValidationErrorsKind};
+use validator::ValidationErrors;
+#[cfg(feature = "actix_validation")]
+use validator::ValidationErrorsKind;
 
 use super::string_utils::to_camel_case;
 
@@ -98,6 +101,7 @@ impl ValidationError {
     }
 }
 
+#[cfg(feature = "actix_validation")]
 pub fn render_single_validation_error(err: &ValidationErrors) -> error::Error {
     match err.to_owned().errors().values().next() {
         Some(ValidationErrorsKind::Field(field_errors)) => {

@@ -22,13 +22,12 @@ swagger = ["paperclip", "microservice-containers/swagger"]
 prometheus = []
 
 [dependencies]
-actix = "=0.12"
-actix-router = "=0.5.0-rc.1" # Remove this dependency after switching to actix-web-4.0.0-beta.19 or newer
-actix-cors = "=0.6.0-beta.8"
-actix-http = "=3.0.0-beta.18"
-actix-service = "=2.0"
-actix-web = "=4.0.0-beta.20"
-awc = { version = "=3.0.0-beta.17", features=["rustls"], optional = true }
+actix = "0.13"
+actix-cors = "0.6"
+actix-http = "3"
+actix-service = "2"
+actix-web = "4"
+awc = { version = "3", features=["rustls"], optional = true }
 alcoholic_jwt = { version = "1.0", optional = true }
 bytes = "1"
 chrono = { version = "0.4", features = ["serde"] }
@@ -40,7 +39,7 @@ log = "0.4"
 microservice-containers = { path = "microservice-containers" }
 microservice-derive = { path = "microservice-derive" }
 num_cpus = "1"
-paperclip = { version = "0.6", features = ["actix", "rust_decimal", "chrono", "swagger-ui"], optional = true }
+paperclip = { version = "0.6", features = ["actix4", "rust_decimal", "chrono", "swagger-ui"], optional = true }
 r2d2-diesel = { version = "1.0", optional = true }
 r2d2 = { version = "0.8", optional = true }
 serde = "1"
@@ -49,6 +48,6 @@ weighted-rs = { version = "0.1", optional = true }
 colored = "2.0"
 
 [patch.crates-io]
-# paperclip = { git = "https://github.com/wafflespeanut/paperclip" }
-paperclip = { git = "https://github.com/sfisol/paperclip", branch = "actix4-beta20-multipart-files-session" }
-# paperclip = { path = "../paperclip" }
+paperclip = { git = "https://github.com/paperclip-rs/paperclip" }
+# paperclip = { git = "https://github.com/sfisol/paperclip", branch = "mountable-actix-files" }
+# paperclip = { path = "../../rust/paperclip" }

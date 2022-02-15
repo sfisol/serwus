@@ -6,7 +6,9 @@ pub mod email;
 #[cfg(feature = "auth")]
 pub mod hash_password;
 
+#[cfg(feature = "auth")]
 mod generate_code;
+#[cfg(feature = "auth")]
 pub use generate_code::generate_code;
 
 #[cfg(feature = "rabbit")]
