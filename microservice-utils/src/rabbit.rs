@@ -7,7 +7,7 @@ use amiquip::{Channel, Connection, ConfirmSmoother, ConsumerMessage, ConsumerOpt
 use log::{error, info};
 use serde::{de::DeserializeOwned, Serialize};
 
-pub fn spawn_rabbit_consumer<T, A>(act: Addr<A>, connection: &mut Connection, queue_name: &'static str)
+pub fn spawn_rabbit_consumer<T, A>(act: Addr<A>, connection: &mut Connection, consume_queue: &'static str, publish_queue: Option<&'static str>)
 where
     T: DeserializeOwned + Message + Send,
     A: Handler<T>,
@@ -23,10 +23,16 @@ where
     };
 
     spawn_blocking(move || {
-        // Declare the "gambling" queue.
-        let queue = match channel.queue_declare(queue_name, QueueDeclareOptions::default()) {
+        if let Some(publish_queue) = publish_queue {
+            match channel.queue_declare(publish_queue, QueueDeclareOptions::default()) {
+                Ok(_) => (),
+                Err(err) => panic!("Error while declaring publisher queue: {}", err),
+            };
+        }
+
+        let queue = match channel.queue_declare(consume_queue, QueueDeclareOptions::default()) {
             Ok(q) => q,
-            Err(err) => panic!("Error while declaring queue: {}", err),
+            Err(err) => panic!("Error while declaring consumer queue: {}", err),
         };
 
         // Start a consumer.
@@ -74,8 +80,7 @@ pub enum SendError {
     Confirm(crossbeam_channel::RecvError),
 }
 
-pub fn send_and_wait_for_ack(msg: impl Serialize, channel: &Channel, queue_name: &'static str) -> Result<(), SendError> {
-    // Mock responding with PASS
+pub fn send_and_wait_for_ack(msg: impl Serialize, channel: &Channel, routing_key: &'static str) -> Result<(), SendError> {
     let exchange = Exchange::direct(channel);
 
     // register a pub confirm listener before putting the channel into confirm mode
@@ -101,17 +106,17 @@ pub fn send_and_wait_for_ack(msg: impl Serialize, channel: &Channel, queue_name:
     };
 
     // Publish message to the queue.
-    match exchange.publish(Publish::new(data.as_bytes(), queue_name)) {
+    match exchange.publish(Publish::new(data.as_bytes(), routing_key)) {
         Ok(_) => {
-            info!("Queue {}: Message published.", queue_name);
+            info!("Exchange {}: Message published.", routing_key);
         },
         Err(err) => {
-            error!("Queue {}: Error while publishing message to rabbitmq: {}", queue_name, err);
+            error!("Exchange {}: Error while publishing message to rabbitmq: {}", routing_key, err);
             return Err(SendError::Publish(err))
         }
     };
 
-    info!("Queue {}: Waiting for confirmation...", queue_name);
+    info!("Exchange {}: Waiting for confirmation...", routing_key);
     // wait for confirmation from the server for those 1 messages
     let mut confirmed = 0;
     while confirmed == 0 {
@@ -121,13 +126,13 @@ pub fn send_and_wait_for_ack(msg: impl Serialize, channel: &Channel, queue_name:
                 confirm
             },
             Err(err) => {
-                error!("Queue {}: Error while confirming recv: {:?}", queue_name, err);
+                error!("Exchange {}: Error while confirming recv: {:?}", routing_key, err);
                 return Err(SendError::Confirm(err))
             }
         };
         println!("got raw confirm {:?} from server", confirm);
         for confirm in confirm_smoother.process(confirm) {
-            info!("Queue {}: Message confirmed: {:?}", queue_name, confirm);
+            info!("Exchange {}: Message confirmed: {:?}", routing_key, confirm);
             confirmed += 1;
         }
     };
