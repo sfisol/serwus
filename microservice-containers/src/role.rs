@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "diesel")]
 use std::io;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[cfg_attr(feature = "diesel", derive(diesel::AsExpression))]
 #[cfg_attr(feature = "diesel", derive(diesel::FromSqlRow))]
 #[cfg_attr(feature = "diesel", sql_type = "SmallInt")]

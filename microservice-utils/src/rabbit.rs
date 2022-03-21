@@ -80,6 +80,7 @@ pub enum SendError {
     Confirm(crossbeam_channel::RecvError),
 }
 
+#[allow(clippy::result_large_err)]
 pub fn send_and_wait_for_ack(msg: impl Serialize, channel: &Channel, routing_key: &'static str) -> Result<(), SendError> {
     let exchange = Exchange::direct(channel);
 

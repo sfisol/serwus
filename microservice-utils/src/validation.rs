@@ -10,7 +10,6 @@ use validator::ValidationErrors;
 use validator::ValidationErrorsKind;
 
 use super::string_utils::to_camel_case;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum CodeError {
     ValidationCodeError = 0,
@@ -63,14 +62,14 @@ impl ValidationError {
                         match &val.message {
                             Some(v) => x.push(
                                 Error {
-                                    code: val.code.to_owned().to_string(),
-                                    message: v.to_owned().to_string(),
+                                    code: val.code.clone().to_string(),
+                                    message: v.clone().to_string(),
                                 }
                             ),
                             None => x.push(
                                 Error {
-                                    code: val.code.to_owned().to_string(),
-                                    message: "".to_owned(),
+                                    code: val.code.clone().to_string(),
+                                    message: "".to_string(),
                                 }
                             )
                         }
@@ -78,13 +77,13 @@ impl ValidationError {
 
                 } else {
                     let message = match &val.message {
-                        Some(v) => v.to_owned().to_string(),
-                        None => "".to_owned()
+                        Some(v) => v.clone().to_string(),
+                        None => "".to_string()
                     };
 
                     let errors: Vec<Error> = vec![
                         Error {
-                            code: val.code.to_owned().to_string(),
+                            code: val.code.clone().to_string(),
                             message,
                         }
                     ];
