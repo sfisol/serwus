@@ -12,6 +12,6 @@ pgsql = ["diesel", "diesel-derive-newtype"]
 diesel = { version = "1.4", features = ["postgres", "chrono"], optional = true }
 diesel-derive-newtype = { version = "0.1.2", optional = true }
 microservice-utils = { path = "../microservice-utils" }
-paperclip = { version = "0.6", features = ["actix4", "rust_decimal", "chrono", "swagger-ui"], optional = true }
+paperclip = { git = "https://github.com/sfisol/paperclip", branch = "actix-files", features = ["actix4", "rust_decimal", "chrono", "swagger-ui"], optional = true }
 serde = "1"
 serde_json = { version = "1", optional = true }
