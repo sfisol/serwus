@@ -13,6 +13,5 @@ diesel = { version = "1.4", features = ["postgres", "chrono"], optional = true }
 diesel-derive-newtype = { version = "0.1.2", optional = true }
 microservice-utils = { path = "../microservice-utils" }
 paperclip = { git = "https://github.com/sfisol/paperclip", branch = "actix-files", features = ["actix4", "rust_decimal", "chrono", "swagger-ui"], optional = true }
-#parking_lot = "0.12"
 serde = "1"
 serde_json = { version = "1", optional = true }
