@@ -3,11 +3,11 @@ use actix::{
     dev::ToEnvelope,
 };
 use actix_web::rt::task::spawn_blocking;
-use amiquip::{Channel, Connection, ConfirmSmoother, ConsumerMessage, ConsumerOptions, Exchange, QueueDeclareOptions, Publish};
+use amiquip::{Channel, ConfirmSmoother, ConsumerMessage, ConsumerOptions, Exchange, QueueDeclareOptions, Publish};
 use log::{error, info};
 use serde::{de::DeserializeOwned, Serialize};
 
-pub fn spawn_rabbit_consumer<T, A>(act: Addr<A>, connection: &mut Connection, consume_queue: &'static str, publish_queue: Option<&'static str>)
+pub fn spawn_rabbit_consumer<T, A>(act: Addr<A>, channel: Channel, consume_queue: &'static str, publish_queue: Option<&'static str>)
 where
     T: DeserializeOwned + Message + Send,
     A: Handler<T>,
@@ -15,12 +15,6 @@ where
     <A as Actor>::Context: ToEnvelope<A, T>
 {
     info!("Rabbit consumer starting...");
-
-    // Open a channel - None says let the library choose the channel ID.
-    let channel = match connection.open_channel(None) {
-        Ok(ch) => ch,
-        Err(err) => panic!("Error while opening channel: {}", err),
-    };
 
     spawn_blocking(move || {
         if let Some(publish_queue) = publish_queue {
@@ -47,7 +41,6 @@ where
             match message {
                 ConsumerMessage::Delivery(delivery) => {
                     let body = &delivery.body[..];
-                    // println!("Body = {:?}", String::from_utf8_lossy(body));
                     let msg: T = match serde_json::from_slice(body) {
                             Ok(msg) => msg,
                         Err(err) => {
@@ -55,7 +48,6 @@ where
                             continue
                         },
                     };
-                    // println!("({:>3}) Received [{:?}]", i, msg);
 
                     act.do_send(msg);
 

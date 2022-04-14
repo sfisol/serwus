@@ -46,8 +46,3 @@ serde = "1"
 serde_json = { version = "1" }
 weighted-rs = { version = "0.1", optional = true }
 colored = "2.0"
-
-# [patch.crates-io]
-# paperclip = { git = "https://github.com/paperclip-rs/paperclip" }
-# paperclip = { git = "https://github.com/sfisol/paperclip", branch = "actix-files" }
-# paperclip = { path = "../../rust/paperclip" }

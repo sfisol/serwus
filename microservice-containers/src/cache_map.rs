@@ -1,11 +1,10 @@
-//  use parking_lot::RwLock;
 use std::{
     collections::HashMap,
     hash::Hash,
-    // rc::Rc,
     time::Instant,
 };
 
+// Maybe TODO: Cache ready to use as shared in tokio loop
 // pub(super) type SharedCache<V> = Rc<RwLock<CacheValue<V>>>;
 // pub(super) type SharedCacheMap<K, V> = Rc<RwLock<HashMap<K, CacheValue<V>>>>;
 
