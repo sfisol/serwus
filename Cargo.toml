@@ -39,7 +39,8 @@ log = "0.4"
 microservice-containers = { path = "microservice-containers" }
 microservice-derive = { path = "microservice-derive" }
 num_cpus = "1"
-paperclip = { git = "https://github.com/sfisol/paperclip", branch = "actix-files", features = ["actix4", "rust_decimal", "chrono", "swagger-ui"], optional = true }
+# paperclip = { git = "https://github.com/sfisol/paperclip", branch = "actix-files", features = ["actix4", "rust_decimal", "chrono", "swagger-ui"], optional = true }
+paperclip = { version = "0.7", features = ["actix4", "rust_decimal", "chrono", "swagger-ui"], optional = true }
 r2d2-diesel = { version = "1.0", optional = true }
 r2d2 = { version = "0.8", optional = true }
 serde = "1"
@@ -50,4 +51,5 @@ colored = "2.0"
 # [patch.crates-io]
 # paperclip = { git = "https://github.com/paperclip-rs/paperclip" }
 # paperclip = { git = "https://github.com/sfisol/paperclip", branch = "actix-files" }
+# paperclip = { git = "https://github.com/sfisol/paperclip", branch = "mountable-actix-files" }
 # paperclip = { path = "../../rust/paperclip" }

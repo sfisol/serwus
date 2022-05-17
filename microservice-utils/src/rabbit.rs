@@ -3,7 +3,7 @@ use actix::{
     dev::ToEnvelope,
 };
 use actix_web::rt::task::spawn_blocking;
-use amiquip::{Channel, ConfirmSmoother, ConsumerMessage, ConsumerOptions, Exchange, QueueDeclareOptions, Publish};
+use amiquip::{Channel, Confirm, Connection, ConfirmSmoother, ConsumerMessage, ConsumerOptions, Exchange, QueueDeclareOptions, Publish};
 use log::{error, info};
 use serde::{de::DeserializeOwned, Serialize};
 
@@ -67,6 +67,7 @@ where
     });
 }
 
+#[derive(Debug)]
 pub enum SendError {
     Channel(amiquip::Error),
     Serde(serde_json::Error),
@@ -74,9 +75,16 @@ pub enum SendError {
     Confirm(crossbeam_channel::RecvError),
 }
 
-pub fn send_and_wait_for_ack(msg: impl Serialize, channel: &Channel, routing_key: &'static str) -> Result<(), SendError> {
-    let exchange = Exchange::direct(channel);
+pub fn open_channel_and_send_and_wait_for_ack(msg: impl Serialize, connection: &mut Connection, routing_key: &'static str) -> Result<(), SendError> {
+    let channel = connection.open_channel(None)
+        .map_err(SendError::Channel)?;
 
+    let confirm_listener = get_confirm_listener(&channel)?;
+
+    send_and_wait_for_ack(msg, &channel, &confirm_listener, routing_key)
+}
+
+pub fn get_confirm_listener(channel: &Channel) -> Result<crossbeam_channel::Receiver<Confirm>, SendError> {
     // register a pub confirm listener before putting the channel into confirm mode
     let confirm_listener = match channel.listen_for_publisher_confirms() {
         Ok(c_l) => c_l,
@@ -89,9 +97,15 @@ pub fn send_and_wait_for_ack(msg: impl Serialize, channel: &Channel, routing_key
     // put channel in confirm mode
     channel.enable_publisher_confirms().unwrap(); // TODO:
 
+    Ok(confirm_listener)
+}
+
+pub fn send_and_wait_for_ack(msg: impl Serialize, channel: &Channel, confirm_listener: &crossbeam_channel::Receiver<Confirm>, routing_key: &'static str) -> Result<(), SendError> {
+    // Mock responding with PASS
+    let exchange = Exchange::direct(channel);
+
     // create a confirm smoother so we can process perfectly sequential confirmations
     let mut confirm_smoother = ConfirmSmoother::new();
-
 
     // Serialize struct
     let data = match serde_json::to_string(&msg) {
