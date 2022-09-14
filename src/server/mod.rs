@@ -72,7 +72,7 @@ pub async fn start_with_cors<D, T, F, C>
 where
     D: AppDataWrapper + 'static,
     T: StatsPresenter<D> + 'static + Clone + Send + Sync,
-    F: Fn(&mut web::ServiceConfig) + Send + Clone + Copy + 'static,
+    F: Fn(&mut web::ServiceConfig) + Send + Clone + 'static,
     C: Fn() -> Cors + Send + Clone + 'static,
 {
     dotenv().ok();
@@ -116,8 +116,8 @@ where
                 .with_swagger_ui_at("/swagger")
         };
 
-        let app = app.configure(configure_app)
-
+        let app = app
+            .configure(configure_app.clone())
             .wrap(cors_factory())
             .wrap(Logger::default())
             .wrap(StatsWrapper::default());
