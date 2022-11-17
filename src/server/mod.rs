@@ -93,7 +93,7 @@ where
     #[allow(unused)]
     let prod_env = run_env == "prod";
 
-    info!("Starting HTTP server");
+    info!("Starting HTTP server on port {app_port}");
     #[allow(clippy::let_and_return)]
     HttpServer::new(move || {
         let app = App::new()
