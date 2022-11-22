@@ -1,19 +1,17 @@
-pub mod stats;
 pub mod app_data;
+mod builder;
 #[cfg(feature = "prometheus")]
 pub mod prometheus;
+pub mod stats;
 
 use actix_cors::Cors;
 use actix_http::Request;
 use actix_service::Service;
 use actix_web::{
-    App, http, HttpServer, test, Error,
+    App, http, test, Error,
     body::BoxBody,
-    middleware::Logger,
     dev::ServiceResponse,
 };
-use dotenv::dotenv;
-use log::{info, error};
 use std::io;
 
 #[cfg(not(feature = "swagger"))]
@@ -28,9 +26,10 @@ use super::threads;
 use super::db_pool;
 
 use super::logger;
-use stats::{BaseStats, StatsWrapper, StatsPresenter, AppDataWrapper, default_healthcheck_handler, default_readiness_handler, default_stats_handler};
+use stats::{StatsPresenter, AppDataWrapper};
 
 pub use app_data::{DefaultAppData, default_app_data};
+pub use builder::Microservice;
 
 fn default_cors() -> Cors {
     Cors::default()
@@ -40,6 +39,7 @@ fn default_cors() -> Cors {
         .max_age(3600)
 }
 
+#[deprecated]
 pub async fn start<D, T, F>
 (
     prepare_app_data: impl Fn() -> T,
@@ -52,6 +52,7 @@ where
     T: StatsPresenter<D> + 'static + Clone + Send + Sync,
     F: Fn(&mut web::ServiceConfig) + Send + Clone + Copy + 'static,
 {
+    #[allow(deprecated)]
     start_with_cors(
         prepare_app_data,
         configure_app,
@@ -61,9 +62,10 @@ where
     ).await
 }
 
+#[deprecated]
 pub async fn start_with_cors<D, T, F, C>
 (
-    prepare_app_data: impl Fn() -> T,
+    prepare_app_data: impl Fn() -> T + Sized,
     configure_app: F,
     app_port: &str,
     run_env: &str,
@@ -72,66 +74,13 @@ pub async fn start_with_cors<D, T, F, C>
 where
     D: AppDataWrapper + 'static,
     T: StatsPresenter<D> + 'static + Clone + Send + Sync,
-    F: Fn(&mut web::ServiceConfig) + Send + Clone + 'static,
+    F: Fn(&mut web::ServiceConfig) + Send + Clone + 'static + Sized,
     C: Fn() -> Cors + Send + Clone + 'static,
 {
-    dotenv().ok();
-
-    match logger::init_logger() {
-        Ok(_) => info!("Logger has been initialized"),
-        Err(_) => error!("Error logger initialization")
-    };
-
-    //env::set_var("RUST_LOG", "actix_web=debug");
-
-    let numthreads = threads::num_threads();
-    info!("Configuring for {} threads", numthreads);
-
-    let app_data = web::Data::new(prepare_app_data());
-    let stats = web::Data::new(BaseStats::default());
-
-    #[allow(unused)]
-    let prod_env = run_env == "prod";
-
-    info!("Starting HTTP server on port {app_port}");
-    #[allow(clippy::let_and_return)]
-    HttpServer::new(move || {
-        let app = App::new()
-            .app_data(app_data.clone())
-            .app_data(stats.clone())
-            .route("_healthcheck", actix_web::web::get().to(default_healthcheck_handler))
-            .route("_ready", actix_web::web::get().to(default_readiness_handler::<T, D>))
-            .route("_stats", actix_web::web::get().to(default_stats_handler::<T, D>));
-
-        #[cfg(feature = "prometheus")]
-        let app = app
-            .route("_prometheus", actix_web::web::get().to(prometheus::prometheus_stats_handler::<T, D>));
-
-        #[cfg(feature = "swagger")]
-        let app = if prod_env {
-            app.wrap_api()
-        } else {
-            app.wrap_api()
-                .with_json_spec_at("/spec")
-                .with_swagger_ui_at("/swagger")
-        };
-
-        let app = app
-            .configure(configure_app.clone())
-            .wrap(cors_factory())
-            .wrap(Logger::default())
-            .wrap(StatsWrapper::default());
-
-        #[cfg(feature = "swagger")]
-        let app = app.build();
-
-        app
-    })
-        .workers(numthreads)
-        .bind(format!("0.0.0.0:{}", app_port))
-        .expect("Can't bind")
-        .run()
-        .await
+    Microservice::default()
+        .set_app_port(app_port)
+        .set_run_env(run_env)
+        .start(prepare_app_data, configure_app, Some(cors_factory)).await
 }
 
 pub async fn test_init<T, F>(prepare_app_data: impl Fn() -> T, configure_app: F) -> impl Service<Request, Response = ServiceResponse<BoxBody>, Error = Error>
