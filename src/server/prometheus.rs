@@ -42,7 +42,7 @@ impl AsPrometheus for BaseStatsInner {
             format!("request_finished {}", self.request_finished),
         ];
         for (code, value) in &self.status_codes {
-            out.push(format!("status_codes{{code=\"{}\"}} {}", code, value));
+            out.push(format!("status_codes{{code=\"{code}\"}} {value}"));
         }
         out
     }
@@ -69,11 +69,11 @@ where
         let service_stats = self.service.as_prometheus();
 
         for stat in base_stats {
-            out.push(format!("base_{}", stat));
+            out.push(format!("base_{stat}"));
         }
 
         for stat in service_stats {
-            out.push(format!("service_{}", stat));
+            out.push(format!("service_{stat}"));
         }
         out
     }

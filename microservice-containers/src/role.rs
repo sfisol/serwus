@@ -52,7 +52,7 @@ where
             1 => Role::Admin,
             2 => Role::SuperAdmin,
             3 => Role::Tester,
-            v => return Err(format!("Unknown identity role {:?}", v).into()),
+            v => return Err(format!("Unknown identity role {v:?}").into()),
         })
     }
 }

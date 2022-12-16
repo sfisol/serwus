@@ -108,7 +108,7 @@ pub fn render_single_validation_error(err: &ValidationErrors) -> error::Error {
                 let code = field_error.code.clone().into_owned();
                 match field_error.message.clone() {
                     Some(message) => error::ErrorBadRequest(message),
-                    None => error::ErrorInternalServerError(format!("No validation message for: {}", code)),
+                    None => error::ErrorInternalServerError(format!("No validation message for: {code}")),
                 }
             } else { error::ErrorInternalServerError("Empty field errors".to_string()) }
         },
