@@ -35,7 +35,7 @@ pub fn init_pool(size: usize) -> Result<Pool, Error> {
 }
 
 pub(super) fn database_url(env_name: &str) -> String {
-    env::var(env_name).expect("DATABASE_URL must be set")
+    env::var(env_name).unwrap_or_else(|_| format!("{env_name} must be set"))
 }
 
 fn default_database_url() -> String {

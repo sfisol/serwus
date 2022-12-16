@@ -195,7 +195,7 @@ where
     let fut_res = service_data.is_ready()
         .map(|result|
             match result {
-                Err(error) => HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR).body(format!("Can't check readiness: {}", error)),
+                Err(error) => HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR).body(format!("Can't check readiness: {error}")),
                 Ok(true) => HttpResponse::build(StatusCode::OK).body("OK".to_string()),
                 Ok(false) => HttpResponse::build(StatusCode::SERVICE_UNAVAILABLE).body("Not ready yet".to_string()),
             }

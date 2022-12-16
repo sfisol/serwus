@@ -20,19 +20,19 @@ where
         if let Some(publish_queue) = publish_queue {
             match channel.queue_declare(publish_queue, QueueDeclareOptions::default()) {
                 Ok(_) => (),
-                Err(err) => panic!("Error while declaring publisher queue: {}", err),
+                Err(err) => panic!("Error while declaring publisher queue: {err}"),
             };
         }
 
         let queue = match channel.queue_declare(consume_queue, QueueDeclareOptions::default()) {
             Ok(q) => q,
-            Err(err) => panic!("Error while declaring consumer queue: {}", err),
+            Err(err) => panic!("Error while declaring consumer queue: {err}"),
         };
 
         // Start a consumer.
         let consumer = match queue.consume(ConsumerOptions::default()) {
             Ok(c) => c,
-            Err(err) => panic!("Error while creating consumer: {}", err),
+            Err(err) => panic!("Error while creating consumer: {err}"),
         };
 
         info!("Rabbit consumer started. Waiting for messages...");
@@ -72,7 +72,6 @@ pub enum SendError {
     Confirm(crossbeam_channel::RecvError),
 }
 
-#[allow(clippy::result_large_err)]
 pub fn send_and_wait_for_ack(msg: impl Serialize, channel: &Channel, routing_key: &'static str) -> Result<(), SendError> {
     let exchange = Exchange::direct(channel);
 
@@ -123,7 +122,7 @@ pub fn send_and_wait_for_ack(msg: impl Serialize, channel: &Channel, routing_key
                 return Err(SendError::Confirm(err))
             }
         };
-        println!("got raw confirm {:?} from server", confirm);
+        println!("got raw confirm {confirm:?} from server");
         for confirm in confirm_smoother.process(confirm) {
             info!("Exchange {}: Message confirmed: {:?}", routing_key, confirm);
             confirmed += 1;
