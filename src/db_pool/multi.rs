@@ -1,6 +1,6 @@
 use diesel::pg::PgConnection;
+use diesel::r2d2::ConnectionManager;
 use r2d2::{self, Error, PooledConnection};
-use r2d2_diesel::ConnectionManager;
 use std::env;
 use log::{error, info};
 use weighted_rs::{Weight, RoundrobinWeight};

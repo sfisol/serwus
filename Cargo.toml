@@ -1,6 +1,6 @@
 [package]
 name = "microservice"
-version = "0.1.0-rc.2"
+version = "0.1.0-rc.3"
 authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
 edition = "2021"
 
@@ -16,7 +16,7 @@ members = [
 auth = ["jsonwebtoken"]
 rs256_jwks = ["alcoholic_jwt", "awc"]
 default = ["pgsql", "auth"]
-pgsql = ["diesel", "microservice-containers/pgsql", "r2d2", "r2d2-diesel"]
+pgsql = ["diesel", "microservice-containers/pgsql", "r2d2"]
 multidb = ["pgsql", "weighted-rs"]
 swagger = ["paperclip", "microservice-containers/swagger"]
 prometheus = []
@@ -31,16 +31,16 @@ awc = { version = "3", features=["rustls"], optional = true }
 alcoholic_jwt = { version = "1.0", optional = true }
 bytes = "1"
 chrono = { version = "0.4", features = ["serde"] }
-diesel = { version = "1.4", features = ["postgres", "chrono"], optional = true }
+diesel = { version = "2.0", features = ["postgres", "chrono", "r2d2"], optional = true }
 dotenv = "0.15"
 futures = "0.3"
-jsonwebtoken = { version = "7", optional = true }
+jsonwebtoken = { version = "8", optional = true }
 log = "0.4"
 microservice-containers = { path = "microservice-containers" }
 microservice-derive = { path = "microservice-derive" }
 num_cpus = "1"
-paperclip = { version = "0.7", features = ["actix4", "rust_decimal", "chrono", "swagger-ui"], optional = true }
-r2d2-diesel = { version = "1.0", optional = true }
+paperclip = { version = "0.8", features = ["actix4", "rust_decimal", "chrono", "swagger-ui"], optional = true }
+# r2d2-diesel = { version = "1.0", optional = true }
 r2d2 = { version = "0.8", optional = true }
 serde = "1"
 serde_json = { version = "1" }
