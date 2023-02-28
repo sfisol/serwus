@@ -1,6 +1,8 @@
 use actix_web::web;
-use diesel::pg::PgConnection;
-use diesel::Connection;
+use diesel::{
+    Connection,
+    pg::PgConnection,
+};
 
 #[cfg(not(feature = "multidb"))]
 use super::Pool;
@@ -31,14 +33,14 @@ where
 #[cfg(not(feature = "multidb"))]
 pub async fn async_transaction<F, I, E>(db_pool: Pool, query_func: F) -> Result<I, E>
 where
-    F: FnOnce(&PgConnection) -> Result<I, E> + Send + 'static,
+    F: FnOnce(&mut PgConnection) -> Result<I, E> + Send + 'static,
     I: Send + 'static,
     E: From<actix_web::error::BlockingError> + From<r2d2::Error> + From<diesel::result::Error> + std::fmt::Debug + Send + 'static,
 {
     web::block(move || {
-        let connection = db_pool.get()?;
-        connection.transaction(||
-            query_func(&connection)
+        let mut connection = db_pool.get()?;
+        connection.transaction(|connection|
+            query_func(connection)
                 .map_err(From::from)
         )
     })
@@ -108,10 +110,10 @@ where
     use diesel::{RunQueryDsl, sql_query};
 
     web::block(move || {
-        let connection = db_pool.read()?;
-        connection.transaction(|| {
-            sql_query("SET TRANSACTION READ ONLY").execute(&*connection)?;
-            query_func(&connection)
+        let mut connection = db_pool.read()?;
+        connection.transaction(|connection| {
+            sql_query("SET TRANSACTION READ ONLY").execute(connection)?;
+            query_func(connection)
                 .map_err(From::from)
         })
     })
@@ -128,9 +130,9 @@ where
     E: From<actix_web::error::BlockingError> + From<r2d2::Error> + From<diesel::result::Error> + std::fmt::Debug + Send + 'static,
 {
     web::block(move || {
-        let connection = db_pool.write()?;
-        connection.transaction(||
-            query_func(&connection)
+        let mut connection = db_pool.write()?;
+        connection.transaction(|connection|
+            query_func(connection)
                 .map_err(From::from)
         )
     })

@@ -1,10 +1,6 @@
-// #![deny(rust_2018_idioms)]
 #![deny(clippy::all)]
 
 #![feature(result_flattening)]
-
-#[cfg(feature = "pgsql")]
-#[macro_use] extern crate diesel;
 
 pub mod auth;
 #[cfg(feature = "pgsql")]

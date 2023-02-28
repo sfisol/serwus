@@ -1,19 +1,18 @@
 use diesel::pg::PgConnection;
-use r2d2::{self, Error};
-use r2d2_diesel::ConnectionManager;
+use diesel::r2d2::{ConnectionManager};
 use std::env;
 use log::{error, info};
 
 use crate::threads::num_threads;
 
-pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
+pub type Pool = diesel::r2d2::Pool<ConnectionManager<PgConnection>>;
 
-pub fn init_default_pool() -> Result<Pool, Error> {
+pub fn init_default_pool() -> Result<Pool, r2d2::Error> {
     let nthreads = num_threads();
     init_pool(if nthreads > 1 { nthreads } else { 2 })
 }
 
-pub fn init_pool(size: usize) -> Result<Pool, Error> {
+pub fn init_pool(size: usize) -> Result<Pool, r2d2::Error> {
     info!("Connecting to database");
 
     let manager = ConnectionManager::<PgConnection>::new(default_database_url());
