@@ -22,3 +22,6 @@ mod sanitize;
 pub use sanitize::*;
 
 pub mod wrap_display;
+
+#[cfg(feature = "actix_multipart")]
+pub mod read_bytes;
