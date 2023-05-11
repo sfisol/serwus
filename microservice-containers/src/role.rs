@@ -38,6 +38,7 @@ impl<DB: Backend> FromSql<SmallInt, DB> for Role
 where
     i16: FromSql<SmallInt, DB>,
 {
+    #[allow(deprecated)]
     fn from_sql(bytes: diesel::backend::RawValue<'_, DB>) -> deserialize::Result<Self> {
         let v = i16::from_sql(bytes)?;
         Ok(match v {
