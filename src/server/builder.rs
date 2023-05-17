@@ -1,10 +1,9 @@
 use actix_cors::Cors;
 use actix_web::{
     App, HttpServer,
-    middleware::{Logger, ErrorHandlers}
+    middleware::ErrorHandlers
 };
 use dotenv::dotenv;
-use log::{info, error};
 
 #[cfg(not(feature = "swagger"))]
 use actix_web::web;
@@ -126,13 +125,24 @@ impl<'a> Microservice<'a>
     {
         dotenv().ok();
 
+        #[cfg(feature = "tracing")]
+        {
+            use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
+            use tracing_subscriber::util::SubscriberInitExt;
+            tracing_subscriber::registry()
+                .with(tracing_subscriber::EnvFilter::new(format!("{},tracing_actix_web::middleware=off", logger::logger_level())))
+                .with(tracing_subscriber::fmt::layer())
+                .init();
+        }
+
+        #[cfg(not(feature = "tracing"))]
         match logger::init_logger() {
-            Ok(_) => info!("Logger has been initialized"),
-            Err(_) => error!("Error logger initialization")
+            Ok(_) => log::info!("Logger has been initialized"),
+            Err(_) => log::error!("Error logger initialization")
         };
 
         let numthreads = threads::num_threads();
-        info!("Configuring for {} threads", numthreads);
+        log::info!("Configuring for {} threads", numthreads);
 
         let app_data = web::Data::new(prepare_app_data());
         let stats = web::Data::new(BaseStats::default());
@@ -143,7 +153,7 @@ impl<'a> Microservice<'a>
         #[cfg(feature = "swagger")]
         let swagger_mount = self.swagger_mount.to_string();
 
-        info!("Starting HTTP server on port {}", self.app_port);
+        log::info!("Starting HTTP server on port {}", self.app_port);
         #[allow(clippy::let_and_return)]
         HttpServer::new(move || {
             let app = App::new()
@@ -171,7 +181,6 @@ impl<'a> Microservice<'a>
 
             let app = app
                 .wrap(cors_factory())
-                .wrap(Logger::default())
                 .wrap(StatsWrapper::default())
                 .wrap({
                     let error_handlers = ErrorHandlers::new();
@@ -182,6 +191,61 @@ impl<'a> Microservice<'a>
                         error_handlers
                     }
                 });
+
+            #[cfg(feature = "tracing")]
+            let app = {
+                use actix_service::Service;
+                use futures::FutureExt;
+                app
+                    .wrap_fn(|req, srv| {
+                        use actix_web::body::{BodySize, MessageBody};
+
+                        let peer_addr = req.connection_info().peer_addr().map(ToString::to_string).unwrap_or_default();
+                        let first_line = if req.query_string().is_empty() {
+                                format!(
+                                    "{} {} {:?}",
+                                    req.method(),
+                                    req.path(),
+                                    req.version()
+                                )
+                            } else {
+                                format!(
+                                    "{} {}?{} {:?}",
+                                    req.method(),
+                                    req.path(),
+                                    req.query_string(),
+                                    req.version()
+                                )
+                            };
+                        let referrer = req.headers().get("Referer").and_then(|v|v.to_str().ok()).unwrap_or("-").to_owned();
+                        let user_agent = req.headers().get("User-Agent").and_then(|v|v.to_str().ok()).unwrap_or("-").to_owned();
+
+                        let time = std::time::Instant::now();
+                        srv.call(req).map(move |res| {
+                            let time_taken = time.elapsed().as_secs_f32();
+
+                            let status = res.as_ref().map(|v| v.status().as_u16()).unwrap_or_default();
+                            let body_size = res
+                                .as_ref()
+                                .map(|v| {
+                                    match v.response().body().size(){
+                                        BodySize::None => 0,
+                                        BodySize::Sized(v)=> v,
+                                        BodySize::Stream=> 0,
+                                    }
+                                })
+                                .unwrap_or_default();
+
+                            // %a "%r" %s %b "%{Referer}i" "%{User-Agent}i" %T
+                            log::info!("{peer_addr} \"{first_line}\" {status} {body_size} \"{referrer}\" \"{user_agent}\" {time_taken}");
+                            res
+                        })
+                    })
+                    .wrap(tracing_actix_web::TracingLogger::default())
+            };
+            #[cfg(not(feature = "tracing"))]
+            let app = app
+                .wrap(actix_web::middleware::Logger::default());
 
             #[cfg(feature = "swagger")]
             let app = app.build();
