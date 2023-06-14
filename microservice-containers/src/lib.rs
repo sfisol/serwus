@@ -9,7 +9,7 @@ pub use password::*;
 
 pub mod role;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Clone, Deserialize, Debug)]
 #[cfg_attr(feature = "swagger", derive(paperclip::actix::Apiv2Schema))]
@@ -17,19 +17,20 @@ use serde::{Serialize, Deserialize};
 pub struct ListResponse<T> {
     pub total: i64,
     pub total_pages: i64,
-    pub data: Vec<T>
+    pub next_page: Option<i64>,
+    pub data: Vec<T>,
 }
 
 pub fn transmute<X, Y>(arg: Vec<X>) -> Vec<Y>
 where
-    X: Into<Y>
+    X: Into<Y>,
 {
     arg.into_iter().map(X::into).collect::<Vec<Y>>()
 }
 
 pub fn filtermute<X, Y>(arg: Vec<X>) -> Vec<Y>
 where
-    X: Into<Option<Y>>
+    X: Into<Option<Y>>,
 {
     arg.into_iter().filter_map(X::into).collect::<Vec<Y>>()
 }
