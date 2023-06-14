@@ -27,7 +27,7 @@ actix-cors = "0.6"
 actix-http = "3"
 actix-service = "2"
 actix-web = "4"
-awc = { version = "3", features=["rustls"], optional = true }
+awc = { version = "3", features = ["rustls"], optional = true }
 alcoholic_jwt = { version = "1.0", optional = true }
 bytes = "1"
 chrono = { version = "0.4", features = ["serde"] }
@@ -39,8 +39,8 @@ log = "0.4"
 microservice-containers = { path = "microservice-containers" }
 microservice-derive = { path = "microservice-derive" }
 num_cpus = "1"
-# paperclip = { version = "0.8", features = ["actix4", "rust_decimal", "chrono", "swagger-ui", "rapidoc", "v3"], optional = true }
-paperclip = { git = "https://github.com/paperclip-rs/paperclip", features = ["actix4", "rust_decimal", "chrono", "swagger-ui", "rapidoc", "v3"], optional = true }
+paperclip = { version = "0.8", features = ["actix4", "rust_decimal", "chrono", "swagger-ui"], optional = true }
+# paperclip = { git = "https://github.com/paperclip-rs/paperclip", features = ["actix4", "rust_decimal", "chrono", "swagger-ui", "rapidoc", "v3"], optional = true }
 # r2d2-diesel = { version = "1.0", optional = true }
 r2d2 = { version = "0.8", optional = true }
 serde = "1"
