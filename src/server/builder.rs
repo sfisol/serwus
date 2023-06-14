@@ -153,9 +153,8 @@ impl<'a> Microservice<'a>
                 app.wrap_api()
             } else {
                 app.wrap_api_with_spec(self.swagger_spec.clone())
-                    .with_json_spec_v3_at(&format!("{swagger_mount}_spec"))
+                    .with_json_spec_at(&format!("{swagger_mount}_spec"))
                     .with_swagger_ui_at(&swagger_mount)
-                    .with_rapidoc_at("/rapidoc")
             };
 
             let app = app
