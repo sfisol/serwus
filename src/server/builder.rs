@@ -1,7 +1,7 @@
 use actix_cors::Cors;
 use actix_web::{
     App, HttpServer,
-    middleware::Logger,
+    middleware::{Logger, ErrorHandlers}
 };
 use dotenv::dotenv;
 use log::{info, error};
@@ -15,7 +15,7 @@ use paperclip::{
     v2::models::DefaultApiRaw,
 };
 
-use crate::server::default_cors;
+use crate::server::{default_cors, json_error::default_error_handler};
 
 use super::threads;
 
@@ -31,6 +31,7 @@ pub struct Microservice<'a> {
     swagger_mount: &'a str,
     #[cfg(feature = "swagger")]
     swagger_spec: DefaultApiRaw,
+    json_errors: bool,
 }
 
 impl Default for Microservice<'_>
@@ -43,6 +44,7 @@ impl Default for Microservice<'_>
             swagger_mount: "/swagger",
             #[cfg(feature = "swagger")]
             swagger_spec: DefaultApiRaw::default(),
+            json_errors: false,
         }
     }
 }
@@ -81,6 +83,13 @@ impl<'a> Microservice<'a>
         self.swagger_spec.info.title = pkg_name.into();
         self.swagger_spec.info.version = pkg_version.into();
         self.swagger_spec.info.description = Some(pkg_description.into());
+        self
+    }
+
+    // Replaces default error handlers with custom one that
+    // any non-JSON error wraps into JSON with GenericError schem
+    pub fn json_errors(mut self) -> Self {
+        self.json_errors = true;
         self
     }
 
@@ -158,10 +167,21 @@ impl<'a> Microservice<'a>
             };
 
             let app = app
-                .configure(configure_app.clone())
+                .configure(configure_app.clone());
+
+            let app = app
                 .wrap(cors_factory())
                 .wrap(Logger::default())
-                .wrap(StatsWrapper::default());
+                .wrap(StatsWrapper::default())
+                .wrap({
+                    let error_handlers = ErrorHandlers::new();
+
+                    if self.json_errors {
+                        error_handlers.default_handler(default_error_handler)
+                    } else {
+                        error_handlers
+                    }
+                });
 
             #[cfg(feature = "swagger")]
             let app = app.build();
