@@ -1,7 +1,7 @@
 use actix_cors::Cors;
 use actix_web::{
     App, HttpServer,
-    middleware::Logger,
+    middleware::{Logger, ErrorHandlers}
 };
 use dotenv::dotenv;
 use log::{info, error};
@@ -15,7 +15,7 @@ use paperclip::{
     v2::models::DefaultApiRaw,
 };
 
-use crate::server::default_cors;
+use crate::server::{default_cors, generic_error::default_error_handler};
 
 use super::threads;
 
@@ -158,10 +158,16 @@ impl<'a> Microservice<'a>
             };
 
             let app = app
-                .configure(configure_app.clone())
+                .configure(configure_app.clone());
+
+            let app = app
                 .wrap(cors_factory())
                 .wrap(Logger::default())
-                .wrap(StatsWrapper::default());
+                .wrap(StatsWrapper::default())
+                .wrap(
+                    ErrorHandlers::new()
+                        .default_handler(default_error_handler)
+                );
 
             #[cfg(feature = "swagger")]
             let app = app.build();

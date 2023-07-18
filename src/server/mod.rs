@@ -1,5 +1,6 @@
 pub mod app_data;
 mod builder;
+pub mod generic_error;
 #[cfg(feature = "prometheus")]
 pub mod prometheus;
 pub mod stats;
