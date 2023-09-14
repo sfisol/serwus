@@ -1,7 +1,7 @@
 use diesel::{
     pg::Pg, prelude::*, query_builder::*, query_dsl::methods::LoadQuery, sql_types::BigInt,
 };
-use microservice_containers::ListResponse;
+use serwus_containers::ListResponse;
 
 pub trait Paginate: Sized {
     fn paginate(self, page: i64) -> Paginated<Self>;

@@ -14,15 +14,12 @@ pub fn empty_stats_macro_derive(input: TokenStream) -> TokenStream {
 fn impl_empty_stats_macro(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
-        {
-            use microservice::stats::StatsPresenter;
-            use actix_web::Error;
-            use futures::future::{Future, ok as fut_ok};
-
-            impl StatsPresenter<()> for #name {
-                fn get_stats(&self) -> Box<dyn Future<Item = (), Error = Error>> {
-                    Box::new(fut_ok(()))
-                }
+        impl ::serwus::server::stats::StatsPresenter<()> for #name {
+            fn is_ready(&self) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output=Result<bool, ::actix_web::Error>>>> {
+                Box::pin(::std::future::ready(Ok(true)))
+            }
+            fn get_stats(&self) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output=Result<(), ::actix_web::Error>>>> {
+                Box::pin(::std::future::ready(Ok(())))
             }
         }
     };
@@ -59,7 +56,7 @@ fn impl_response_from_builder(ast: &syn::DeriveInput) -> TokenStream {
     let gen = quote! {
         impl ::actix_web::ResponseError for #name {
             fn error_response(&self) -> ::actix_web::HttpResponse {
-                ::microservice::server::json_error::ErrorBuilder::from(self)
+                ::::serwus::server::json_error::ErrorBuilder::from(self)
                     .finish()
                     .error_response()
             }

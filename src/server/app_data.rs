@@ -1,5 +1,5 @@
 #[cfg(feature = "pgsql")]
-use log::{info};
+use log::info;
 
 use actix_web::Error;
 use futures::future::{Future, ok as fut_ok};
@@ -14,6 +14,7 @@ use super::prometheus::AsPrometheus;
 
 use super::stats::StatsPresenter;
 
+/// AppData ready to use if you need only default database connection.
 #[derive(Clone)]
 pub struct DefaultAppData {
     #[cfg(feature = "pgsql")]

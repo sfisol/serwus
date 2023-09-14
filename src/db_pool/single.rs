@@ -1,5 +1,5 @@
 use diesel::pg::PgConnection;
-use diesel::r2d2::{ConnectionManager};
+use diesel::r2d2::ConnectionManager;
 use std::env;
 use log::{error, info};
 

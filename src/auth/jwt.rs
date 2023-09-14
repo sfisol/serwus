@@ -1,6 +1,6 @@
 use actix_web::{
     HttpRequest, Error,
-    error::{ErrorUnauthorized},
+    error::ErrorUnauthorized,
 };
 use jsonwebtoken::{
     encode, decode, Header, Validation, DecodingKey, EncodingKey,

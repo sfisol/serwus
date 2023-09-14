@@ -1,4 +1,4 @@
-use microservice_utils::wrap_display;
+use serwus_utils::wrap_display;
 use serde::{Deserialize, Serializer, Serialize};
 use std::ops::Deref;
 
