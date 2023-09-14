@@ -35,7 +35,7 @@ pub struct BaseStats(
     pub(super) Arc<RwLock<BaseStatsInner>>
 );
 
-/// BetsStatsInner are common microservice statistics not tied to any special functionality
+/// BaseStatsInner are common serwus statistics not tied to any special functionality
 #[derive(Clone, Serialize)]
 pub struct BaseStatsInner {
     pub(super) request_started: usize,
@@ -239,6 +239,56 @@ pub struct StatsOutput<D: Serialize> {
     pub(super) service: Option<D>,
 }
 
+/// Trait to be implemented by AppData if service want to be included in stats handler
+///
+/// Example:
+/// ```
+/// use actix_web::error::Error;
+/// use serde::Serialize;
+/// use serwus::server::stats::StatsPresenter;
+/// use std::future::{Future, ready};
+/// use std::pin::Pin;
+/// # #[cfg(feature = "prometheus")]
+/// # pub use serwus::server::prometheus::AsPrometheus;
+///
+/// #[derive(Serialize)]
+/// pub struct AppStats {
+///    pub upstream_conn: bool,
+///    pub client_count: usize,
+/// }
+///
+/// pub struct AppData {
+///    pub upstream_conn: Option<()>,
+///    pub clients: Vec<()>,
+/// }
+///
+/// impl StatsPresenter<AppStats> for AppData {
+///    fn is_ready(&self) -> Pin<Box<dyn Future<Output=Result<bool, Error>>>> {
+///       Box::pin(ready(Ok(
+///          self.upstream_conn.is_some()
+///       )))
+///    }
+///
+///    fn get_stats(&self) -> Pin<Box<dyn Future<Output=Result<AppStats, Error>>>> {
+///       Box::pin(ready(Ok(
+///          AppStats {
+///             upstream_conn: self.upstream_conn.is_some(),
+///             client_count: self.clients.len(),
+///          }
+///       )))
+///    }
+/// }
+///
+/// # #[cfg(feature = "prometheus")]
+/// # impl AsPrometheus for AppStats {
+/// #    fn as_prometheus(&self) -> Vec<String> {
+/// #       vec![
+/// #           format!("upstream_conn {}", self.upstream_conn),
+/// #           format!("client_count {}", self.client_count),
+/// #       ]
+/// #    }
+/// # }
+/// ```
 pub trait StatsPresenter<D: AppDataWrapper> {
     fn is_ready(&self) -> Pin<Box<dyn Future<Output=Result<bool, Error>>>>;
     fn get_stats(&self) -> Pin<Box<dyn Future<Output=Result<D, Error>>>>;

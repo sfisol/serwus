@@ -1,3 +1,5 @@
+//! Pool made of pools, one writable and others read-only with connections to slave replica(s).
+
 use diesel::pg::PgConnection;
 use diesel::r2d2::ConnectionManager;
 use r2d2::{self, Error, PooledConnection};
@@ -10,6 +12,27 @@ use crate::threads::num_threads;
 
 use super::{Pool, database_url};
 
+/// Example:
+///
+/// ```
+/// use serwus::db_pool::multi::{MultiPool, MultiPoolBuilder};
+///
+/// pub struct AppData {
+///    db_pool: MultiPool,
+/// }
+///
+/// impl Default for AppData {
+///    fn default() -> Self {
+///       Self {
+///          // Use DATABASE_URL env for writable database
+///          // Use DATABASE_MIRRORS_URLS env for read-only databases (comma-separated)
+///          db_pool: MultiPoolBuilder::default()
+///             .connect()
+///             .expect("Can't connect to databases")
+///       }
+///    }
+/// }
+/// ```
 #[derive(Clone)]
 pub struct MultiPool {
     master: Option<Pool>,

@@ -11,7 +11,7 @@ use derive_more::Display;
 use serde::Serialize;
 use std::fmt::{Debug, Display};
 
-pub use microservice_derive::ResponseFromBuilder;
+pub use serwus_derive::ResponseFromBuilder;
 
 #[derive(Debug, Display, Serialize)]
 #[cfg_attr(feature = "swagger", derive(paperclip::actix::Apiv2Schema))]

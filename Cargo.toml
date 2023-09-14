@@ -1,19 +1,19 @@
 [package]
-name = "microservice"
-version = "0.1.0-rc.3"
+name = "serwus"
+version = "0.1.0"
 authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
 edition = "2021"
 
 [workspace]
-members = [".", "microservice-derive", "microservice-containers", "microservice-utils"]
+members = [".", "serwus-derive", "serwus-containers", "serwus-utils"]
 
 [features]
 auth = ["jsonwebtoken"]
 rs256_jwks = ["alcoholic_jwt", "awc"]
 default = ["pgsql", "auth", "tracing"]
-pgsql = ["diesel", "microservice-containers/pgsql", "r2d2"]
+pgsql = ["diesel", "serwus-containers/pgsql", "r2d2"]
 multidb = ["pgsql", "weighted-rs"]
-swagger = ["paperclip", "microservice-containers/swagger"]
+swagger = ["paperclip", "serwus-containers/swagger"]
 prometheus = []
 tracing = ["dep:tracing", "tracing-actix-web", "tracing-subscriber"]
 
@@ -33,12 +33,10 @@ dotenv = "0.15"
 futures = "0.3"
 jsonwebtoken = { version = "8", optional = true }
 log = "0.4"
-microservice-containers = { path = "microservice-containers" }
-microservice-derive = { path = "microservice-derive" }
+serwus-containers = { path = "serwus-containers" }
+serwus-derive = { path = "serwus-derive" }
 num_cpus = "1"
 paperclip = { version = "0.8", features = ["actix4", "rust_decimal", "chrono", "swagger-ui"], optional = true }
-# paperclip = { git = "https://github.com/paperclip-rs/paperclip", features = ["actix4", "rust_decimal", "chrono", "swagger-ui", "rapidoc", "v3"], optional = true }
-# r2d2-diesel = { version = "1.0", optional = true }
 r2d2 = { version = "0.8", optional = true }
 serde = "1"
 serde_json = { version = "1" }

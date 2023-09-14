@@ -14,7 +14,7 @@ use paperclip::{
     v2::models::DefaultApiRaw,
 };
 
-use crate::server::{default_cors, json_error::default_error_handler};
+use crate::server::json_error::default_error_handler;
 
 use super::threads;
 
@@ -23,7 +23,7 @@ use super::{
     logger,
 };
 
-pub struct Microservice<'a> {
+pub struct Serwus<'a> {
     app_port: &'a str,
     run_env: &'a str,
     #[cfg(feature = "swagger")]
@@ -33,10 +33,10 @@ pub struct Microservice<'a> {
     json_errors: bool,
 }
 
-impl Default for Microservice<'_>
+impl Default for Serwus<'_>
 {
     fn default() -> Self {
-        Microservice {
+        Serwus {
             app_port: "8000",
             run_env: "dev",
             #[cfg(feature = "swagger")]
@@ -48,7 +48,7 @@ impl Default for Microservice<'_>
     }
 }
 
-impl<'a> Microservice<'a>
+impl<'a> Serwus<'a>
 {
     pub fn set_app_port(mut self, app_port: &'a str) -> Self
     {
@@ -93,25 +93,6 @@ impl<'a> Microservice<'a>
     }
 
     pub async fn start<D, T, F, C> (
-        self,
-        prepare_app_data: impl Fn() -> T + Sized,
-        configure_app: F,
-        cors_factory: Option<C>,
-    ) -> std::io::Result<()>
-    where
-        D: AppDataWrapper + 'static,
-        T: StatsPresenter<D> + 'static + Clone + Send + Sync,
-        F: Fn(&mut web::ServiceConfig) + Send + Clone + 'static + Sized,
-        C: Fn() -> Cors + Send + Clone + 'static,
-    {
-        if let Some(cors_factory) = cors_factory {
-            self.start_inner(prepare_app_data, configure_app, cors_factory).await
-        } else {
-            self.start_inner(prepare_app_data, configure_app, default_cors).await
-        }
-    }
-
-    async fn start_inner<D, T, F, C> (
         self,
         prepare_app_data: impl Fn() -> T + Sized,
         configure_app: F,

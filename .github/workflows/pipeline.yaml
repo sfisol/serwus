@@ -17,8 +17,8 @@ jobs:
       - uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: -p microservice -p microservice-containers -p microservice-utils --all-features -- -Dwarnings
-          name: Microservice Vertigo Clippy Output
+          args: -p serwus -p serwus-containers -p serwus-utils --all-features -- -Dwarnings
+          name: Serwus Clippy Output
 
   nightly-tests:
     name: Nightly tests
@@ -32,7 +32,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: -p microservice -p microservice-containers -p microservice-utils --all-features
+          args: -p serwus -p serwus-containers -p serwus-utils --all-features
 
   # stable-clippy:
   #   name: Stable clippy

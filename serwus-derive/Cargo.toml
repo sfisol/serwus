@@ -1,5 +1,5 @@
 [package]
-name = "microservice-derive"
+name = "serwus-derive"
 version = "0.1.0-rc.3"
 authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
 edition = "2021"
@@ -8,5 +8,5 @@ edition = "2021"
 proc-macro = true
 
 [dependencies]
-syn = "1.0.58"
-quote = "1.0.8"
+syn = "2.0"
+quote = "1.0"
