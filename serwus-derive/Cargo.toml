@@ -1,6 +1,6 @@
 [package]
 name = "serwus-derive"
-version = "0.1.0-rc.3"
+version = "0.1.0"
 authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
 edition = "2021"
 
