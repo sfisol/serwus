@@ -1,13 +1,11 @@
-use serwus_utils::wrap_display;
+use derive_more::Display;
 use serde::{Deserialize, Serializer, Serialize};
 use std::ops::Deref;
 
-#[derive(Clone, Debug, Deserialize, Hash, PartialEq, Eq)]
-#[cfg_attr(feature = "diesel", derive(diesel_derive_newtype::DieselNewType))]
+#[derive(Clone, Debug, Deserialize, Display, Hash, PartialEq, Eq)]
+#[cfg_attr(feature = "pgsql", derive(diesel_derive_newtype::DieselNewType))]
 #[cfg_attr(feature = "paperclip", derive(paperclip::actix::Apiv2Schema))]
 pub struct Password(pub String);
-
-wrap_display!(Password);
 
 impl Serialize for Password {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
