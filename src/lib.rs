@@ -44,6 +44,9 @@
 
 #![feature(result_flattening)]
 
+pub mod containers;
+pub mod utils;
+
 pub mod auth;
 #[cfg(feature = "pgsql")]
 pub mod db_pool;
