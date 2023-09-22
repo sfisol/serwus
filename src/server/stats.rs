@@ -1,21 +1,21 @@
 //! Request counter and other stats middleware
 
-use std::collections::{HashSet, HashMap};
-use std::sync::{Arc, RwLock, Weak};
+use std::collections::{HashMap, HashSet};
 use std::pin::Pin;
 use std::rc::Rc;
+use std::sync::{Arc, RwLock, Weak};
 use std::task::{Context, Poll};
 
 use actix_service::{Service, Transform};
-use futures::future::{Future, Ready, ok as fut_ok, FutureExt, TryFutureExt};
+use futures::future::{ok as fut_ok, Future, FutureExt, Ready, TryFutureExt};
 use log::{debug, warn};
 
 use actix_web::body::MessageBody;
 use actix_web::error::Error;
 use actix_web::http::StatusCode;
 use actix_web::{
+    dev::{ServiceRequest, ServiceResponse},
     HttpResponse,
-    dev::{ServiceRequest, ServiceResponse}
 };
 
 #[cfg(not(feature = "swagger"))]
@@ -31,9 +31,7 @@ pub use super::prometheus::AsPrometheus;
 
 /// BaseStats contains BaseStatsInner singleton
 #[derive(Clone)]
-pub struct BaseStats(
-    pub(super) Arc<RwLock<BaseStatsInner>>
-);
+pub struct BaseStats(pub(super) Arc<RwLock<BaseStatsInner>>);
 
 /// BetsStatsInner are common microservice statistics not tied to any special functionality
 #[derive(Clone, Serialize)]
@@ -45,17 +43,11 @@ pub struct BaseStatsInner {
 
 impl Default for BaseStats {
     fn default() -> Self {
-        Self (
-            Arc::new(
-                RwLock::new(
-                    BaseStatsInner {
-                        request_started: 0,
-                        request_finished: 0,
-                        status_codes: HashMap::new(),
-                    }
-                )
-            )
-        )
+        Self(Arc::new(RwLock::new(BaseStatsInner {
+            request_started: 0,
+            request_finished: 0,
+            status_codes: HashMap::new(),
+        })))
     }
 }
 
@@ -69,13 +61,7 @@ struct StatsConfig {
 
 impl StatsWrapper {
     pub fn new(excludes: HashSet<String>) -> Self {
-        Self(
-            Rc::new(
-                StatsConfig {
-                    excludes
-                }
-            )
-        )
+        Self(Rc::new(StatsConfig { excludes }))
     }
 }
 
@@ -165,7 +151,8 @@ where
 
             if count_it {
                 // Try to acquire strong Arc to stats again
-                if let Some(stats_arc) = stats_arc_for_response.and_then(|wbs| Weak::upgrade(&wbs)) {
+                if let Some(stats_arc) = stats_arc_for_response.and_then(|wbs| Weak::upgrade(&wbs))
+                {
                     if let Ok(mut stats) = stats_arc.write() {
                         stats.request_finished += 1;
                         let left = stats.request_started - stats.request_finished;
@@ -184,49 +171,58 @@ where
 }
 
 /// Default alive healthcheck handler
-pub async fn default_healthcheck_handler() -> &'static str { "" }
+pub async fn default_healthcheck_handler() -> &'static str {
+    ""
+}
 
 /// Default readiness handler
-pub async fn default_readiness_handler<S, D>(service_data: web::Data<S>) -> Result<HttpResponse, Error>
+pub async fn default_readiness_handler<S, D>(
+    service_data: web::Data<S>,
+) -> Result<HttpResponse, Error>
 where
     D: AppDataWrapper,
     S: StatsPresenter<D>,
 {
-    let fut_res = service_data.is_ready()
-        .map(|result|
-            match result {
-                Err(error) => HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR).body(format!("Can't check readiness: {error}")),
-                Ok(true) => HttpResponse::build(StatusCode::OK).body("OK".to_string()),
-                Ok(false) => HttpResponse::build(StatusCode::SERVICE_UNAVAILABLE).body("Not ready yet".to_string()),
-            }
-        );
+    let fut_res = service_data.is_ready().map(|result| match result {
+        Err(error) => HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR)
+            .body(format!("Can't check readiness: {error}")),
+        Ok(true) => HttpResponse::build(StatusCode::OK).body("OK".to_string()),
+        Ok(false) => {
+            HttpResponse::build(StatusCode::SERVICE_UNAVAILABLE).body("Not ready yet".to_string())
+        }
+    });
     Ok(fut_res.await)
 }
 
 // Default stats handler
-pub async fn default_stats_handler<S, D>(base_data: web::Data<BaseStats>, service_data: web::Data<S>) -> Result<HttpResponse, Error>
+pub async fn default_stats_handler<S, D>(
+    base_data: web::Data<BaseStats>,
+    service_data: web::Data<S>,
+) -> Result<HttpResponse, Error>
 where
     D: AppDataWrapper,
     S: StatsPresenter<D>,
 {
-    let fut_res = service_data.get_stats()
-        .and_then(move |service_stats| {
-            if let Ok(base_stats) = base_data.0.read() {
+    let fut_res = service_data.get_stats().and_then(move |service_stats| {
+        if let Ok(base_stats) = base_data.0.read() {
+            #[allow(clippy::unit_arg)]
+            let output = StatsOutput {
+                base: base_stats.clone(),
+                service: Some(service_stats),
+            };
 
-                #[allow(clippy::unit_arg)]
-                let output = StatsOutput {
-                    base: base_stats.clone(),
-                    service: Some(service_stats),
-                };
-
-                fut_ok(HttpResponse::build(StatusCode::OK)
+            fut_ok(
+                HttpResponse::build(StatusCode::OK)
                     .content_type("application/json")
-                    .body(serde_json::to_string(&output).unwrap())
-                )
-            } else {
-                fut_ok(HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR).body("Can't acquire stats (1)".to_string()))
-            }
-        });
+                    .body(serde_json::to_string(&output).unwrap()),
+            )
+        } else {
+            fut_ok(
+                HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR)
+                    .body("Can't acquire stats (1)".to_string()),
+            )
+        }
+    });
 
     fut_res.await
 }
@@ -240,14 +236,14 @@ pub struct StatsOutput<D: Serialize> {
 }
 
 pub trait StatsPresenter<D: AppDataWrapper> {
-    fn is_ready(&self) -> Pin<Box<dyn Future<Output=Result<bool, Error>>>>;
-    fn get_stats(&self) -> Pin<Box<dyn Future<Output=Result<D, Error>>>>;
+    fn is_ready(&self) -> Pin<Box<dyn Future<Output = Result<bool, Error>>>>;
+    fn get_stats(&self) -> Pin<Box<dyn Future<Output = Result<D, Error>>>>;
 
     #[cfg(feature = "prometheus")]
-    fn get_prometheus(&self) -> Pin<Box<dyn Future<Output=Result<Vec<String>, Error>>>> {
-        let fut = self.get_stats().map(|stats_res|
-            stats_res.map(|stats| stats.as_prometheus())
-        );
+    fn get_prometheus(&self) -> Pin<Box<dyn Future<Output = Result<Vec<String>, Error>>>> {
+        let fut = self
+            .get_stats()
+            .map(|stats_res| stats_res.map(|stats| stats.as_prometheus()));
         Box::pin(fut)
     }
 }
@@ -258,15 +254,9 @@ pub trait AppDataWrapper: Serialize + AsPrometheus + 'static {}
 pub trait AppDataWrapper: Serialize {}
 
 #[cfg(feature = "prometheus")]
-impl<T> AppDataWrapper for T
-where
-    T: Serialize + AsPrometheus + 'static
-{ }
+impl<T> AppDataWrapper for T where T: Serialize + AsPrometheus + 'static {}
 
 #[cfg(not(feature = "prometheus"))]
-impl<T> AppDataWrapper for T
-where
-    T: Serialize
-{ }
+impl<T> AppDataWrapper for T where T: Serialize {}
 
 // TODO unittests - see logger tests
