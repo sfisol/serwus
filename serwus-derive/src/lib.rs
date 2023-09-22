@@ -56,7 +56,7 @@ fn impl_response_from_builder(ast: &syn::DeriveInput) -> TokenStream {
     let gen = quote! {
         impl ::actix_web::ResponseError for #name {
             fn error_response(&self) -> ::actix_web::HttpResponse {
-                ::::serwus::server::json_error::ErrorBuilder::from(self)
+                ::serwus::server::json_error::ErrorBuilder::from(self)
                     .finish()
                     .error_response()
             }
