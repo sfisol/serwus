@@ -141,13 +141,19 @@ where
         let fut = self.service.call(req);
 
         Box::pin(async move {
-            let res = fut.await?;
+            let res = fut.await;
 
-            if let Some(error) = res.response().error() {
-                if res.response().head().status != StatusCode::INTERNAL_SERVER_ERROR {
-                    debug!("Error in response: {:?}", error);
+            let status_code = match &res {
+                Ok(res) => {
+                    if let Some(error) = res.response().error() {
+                        if res.response().head().status != StatusCode::INTERNAL_SERVER_ERROR {
+                            debug!("Error in response: {:?}", error);
+                        }
+                    }
+                    res.status()
                 }
-            }
+                Err(err) => err.error_response().status(),
+            };
 
             if count_it {
                 // Try to acquire strong Arc to stats again
@@ -159,13 +165,12 @@ where
                         if left > 1 {
                             warn!("Number of unfinished requests: {}", left);
                         }
-                        let status_code = res.status().as_u16();
-                        *stats.status_codes.entry(status_code).or_insert(0) += 1;
+                        *stats.status_codes.entry(status_code.as_u16()).or_insert(0) += 1;
                     }
                 }
             }
 
-            Ok(res)
+            res
         })
     }
 }
