@@ -2,6 +2,19 @@
 name = "serwus"
 version = "0.1.0"
 authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
+description = "Helpers for building actix-web/diesel based services"
+readme = "README.md"
+keywords = ["http", "web", "actix", "actix-web", "diesel"]
+homepage = "https://github.com/sfisol/serwus"
+repository = "https://github.com/sfisol/serwus"
+documentation = "https://docs.rs/serwus/"
+categories = [
+    "network-programming",
+    "asynchronous",
+    "web-programming::http-server",
+    "web-programming::websocket"
+]
+license = "MIT OR Apache-2.0"
 edition = "2021"
 
 [workspace]

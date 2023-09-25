@@ -2,6 +2,8 @@
 name = "serwus-derive"
 version = "0.1.0"
 authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
+description = "Helpers for building actix-web/diesel based services - macros"
+license = "MIT OR Apache-2.0"
 edition = "2021"
 
 [lib]
