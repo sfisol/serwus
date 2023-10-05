@@ -1,8 +1,5 @@
 use actix_cors::Cors;
-use actix_web::{
-    App, HttpServer,
-    middleware::ErrorHandlers
-};
+use actix_web::{middleware::ErrorHandlers, App, HttpServer};
 use dotenv::dotenv;
 
 #[cfg(not(feature = "swagger"))]
@@ -19,8 +16,11 @@ use crate::server::json_error::default_error_handler;
 use super::threads;
 
 use super::{
-    stats::{BaseStats, StatsWrapper, StatsPresenter, AppDataWrapper, default_healthcheck_handler, default_readiness_handler, default_stats_handler},
     logger,
+    stats::{
+        default_healthcheck_handler, default_readiness_handler, default_stats_handler,
+        AppDataWrapper, BaseStats, StatsPresenter, StatsWrapper,
+    },
 };
 
 pub struct Serwus<'a> {
@@ -33,8 +33,7 @@ pub struct Serwus<'a> {
     json_errors: bool,
 }
 
-impl Default for Serwus<'_>
-{
+impl Default for Serwus<'_> {
     fn default() -> Self {
         Serwus {
             app_port: "8000",
@@ -48,37 +47,36 @@ impl Default for Serwus<'_>
     }
 }
 
-impl<'a> Serwus<'a>
-{
-    pub fn set_app_port(mut self, app_port: &'a str) -> Self
-    {
+impl<'a> Serwus<'a> {
+    pub fn set_app_port(mut self, app_port: &'a str) -> Self {
         self.app_port = app_port;
         self
     }
 
-    pub fn set_run_env(mut self, run_env: &'a str) -> Self
-    {
+    pub fn set_run_env(mut self, run_env: &'a str) -> Self {
         self.run_env = run_env;
         self
     }
 
     #[cfg(feature = "swagger")]
-    pub fn set_swagger_mount(mut self, swagger_mount: &'a str) -> Self
-    {
+    pub fn set_swagger_mount(mut self, swagger_mount: &'a str) -> Self {
         self.swagger_mount = swagger_mount;
         self
     }
 
     #[cfg(feature = "swagger")]
-    pub fn set_swagger_spec(mut self, swagger_spec: DefaultApiRaw) -> Self
-    {
+    pub fn set_swagger_spec(mut self, swagger_spec: DefaultApiRaw) -> Self {
         self.swagger_spec = swagger_spec;
         self
     }
 
     #[cfg(feature = "swagger")]
-    pub fn set_swagger_info(mut self, pkg_name: impl Into<String>, pkg_version: impl Into<String>, pkg_description: impl Into<String>) -> Self
-    {
+    pub fn set_swagger_info(
+        mut self,
+        pkg_name: impl Into<String>,
+        pkg_version: impl Into<String>,
+        pkg_description: impl Into<String>,
+    ) -> Self {
         self.swagger_spec.info.title = pkg_name.into();
         self.swagger_spec.info.version = pkg_version.into();
         self.swagger_spec.info.description = Some(pkg_description.into());
@@ -92,7 +90,7 @@ impl<'a> Serwus<'a>
         self
     }
 
-    pub async fn start<D, T, F, C> (
+    pub async fn start<D, T, F, C>(
         self,
         prepare_app_data: impl Fn() -> T + Sized,
         configure_app: F,
@@ -111,15 +109,20 @@ impl<'a> Serwus<'a>
             use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
             use tracing_subscriber::util::SubscriberInitExt;
             tracing_subscriber::registry()
-                .with(tracing_subscriber::EnvFilter::new(format!("{},tracing_actix_web::middleware=off", logger::logger_level())))
-                .with(tracing_subscriber::fmt::layer())
+                .with(tracing_subscriber::EnvFilter::new(format!(
+                    "{},tracing_actix_web::middleware=off",
+                    logger::logger_level()
+                )))
+                .with(
+                    tracing_subscriber::fmt::layer().with_ansi(with_colors()), // Untill next version is released that contains https://github.com/tokio-rs/tracing/pull/2647
+                )
                 .init();
         }
 
         #[cfg(not(feature = "tracing"))]
         match logger::init_logger() {
             Ok(_) => log::info!("Logger has been initialized"),
-            Err(_) => log::error!("Error logger initialization")
+            Err(_) => log::error!("Error logger initialization"),
         };
 
         let numthreads = threads::num_threads();
@@ -239,4 +242,8 @@ impl<'a> Serwus<'a>
             .run()
             .await
     }
+}
+
+fn with_colors() -> bool {
+    std::env::var("NO_COLOR").map_or(true, |v| v.is_empty())
 }
