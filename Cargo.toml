@@ -61,7 +61,7 @@ validator_derive = "0.16"
 weighted-rs = { version = "0.1", optional = true }
 colored = "2.0"
 
-tracing-actix-web = { version = "0.7", optional = true }
-tracing = { version = "0.1", optional = true }
+tracing-actix-web = { version = "0.7.8", optional = true }
+tracing = { version = "0.1.40", features = ["log"], optional = true }
 tracing-subscriber = { version = "0.3.16", features = ["env-filter", "tracing-log"], optional = true }
 tracing-bunyan-formatter = { version = "0.3", optional = true }
