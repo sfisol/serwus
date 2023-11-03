@@ -106,16 +106,14 @@ impl<'a> Serwus<'a> {
 
         #[cfg(feature = "tracing")]
         {
+            use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
             use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
             use tracing_subscriber::util::SubscriberInitExt;
+
             tracing_subscriber::registry()
-                .with(tracing_subscriber::EnvFilter::new(format!(
-                    "{},tracing_actix_web::middleware=off",
-                    logger::logger_level()
-                )))
-                .with(
-                    tracing_subscriber::fmt::layer().with_ansi(with_colors()), // Untill next version is released that contains https://github.com/tokio-rs/tracing/pull/2647
-                )
+                .with(tracing_subscriber::EnvFilter::new(logger::logger_level()))
+                .with(JsonStorageLayer)
+                .with(BunyanFormattingLayer::new("serwus".into(), std::io::stdout))
                 .init();
         }
 
@@ -143,13 +141,24 @@ impl<'a> Serwus<'a> {
             let app = App::new()
                 .app_data(app_data.clone())
                 .app_data(stats.clone())
-                .route("_healthcheck", actix_web::web::get().to(default_healthcheck_handler))
-                .route("_ready", actix_web::web::get().to(default_readiness_handler::<T, D>))
-                .route("_stats", actix_web::web::get().to(default_stats_handler::<T, D>));
+                .route(
+                    "_healthcheck",
+                    actix_web::web::get().to(default_healthcheck_handler),
+                )
+                .route(
+                    "_ready",
+                    actix_web::web::get().to(default_readiness_handler::<T, D>),
+                )
+                .route(
+                    "_stats",
+                    actix_web::web::get().to(default_stats_handler::<T, D>),
+                );
 
             #[cfg(feature = "prometheus")]
-            let app = app
-                .route("_prometheus", actix_web::web::get().to(super::prometheus::prometheus_stats_handler::<T, D>));
+            let app = app.route(
+                "_prometheus",
+                actix_web::web::get().to(super::prometheus::prometheus_stats_handler::<T, D>),
+            );
 
             #[cfg(feature = "swagger")]
             let app = if prod_env {
@@ -160,8 +169,7 @@ impl<'a> Serwus<'a> {
                     .with_swagger_ui_at(&swagger_mount)
             };
 
-            let app = app
-                .configure(configure_app.clone());
+            let app = app.configure(configure_app.clone());
 
             let app = app
                 .wrap(cors_factory())
@@ -177,73 +185,19 @@ impl<'a> Serwus<'a> {
                 });
 
             #[cfg(feature = "tracing")]
-            let app = {
-                use actix_service::Service;
-                use futures::FutureExt;
-                app
-                    .wrap_fn(|req, srv| {
-                        use actix_web::body::{BodySize, MessageBody};
+            let app = app.wrap(tracing_actix_web::TracingLogger::default());
 
-                        let peer_addr = req.connection_info().peer_addr().map(ToString::to_string).unwrap_or_default();
-                        let first_line = if req.query_string().is_empty() {
-                                format!(
-                                    "{} {} {:?}",
-                                    req.method(),
-                                    req.path(),
-                                    req.version()
-                                )
-                            } else {
-                                format!(
-                                    "{} {}?{} {:?}",
-                                    req.method(),
-                                    req.path(),
-                                    req.query_string(),
-                                    req.version()
-                                )
-                            };
-                        let referrer = req.headers().get("Referer").and_then(|v|v.to_str().ok()).unwrap_or("-").to_owned();
-                        let user_agent = req.headers().get("User-Agent").and_then(|v|v.to_str().ok()).unwrap_or("-").to_owned();
-
-                        let time = std::time::Instant::now();
-                        srv.call(req).map(move |res| {
-                            let time_taken = time.elapsed().as_secs_f32();
-
-                            let status = res.as_ref().map(|v| v.status().as_u16()).unwrap_or_default();
-                            let body_size = res
-                                .as_ref()
-                                .map(|v| {
-                                    match v.response().body().size(){
-                                        BodySize::None => 0,
-                                        BodySize::Sized(v)=> v,
-                                        BodySize::Stream=> 0,
-                                    }
-                                })
-                                .unwrap_or_default();
-
-                            // %a "%r" %s %b "%{Referer}i" "%{User-Agent}i" %T
-                            log::info!("{peer_addr} \"{first_line}\" {status} {body_size} \"{referrer}\" \"{user_agent}\" {time_taken}");
-                            res
-                        })
-                    })
-                    .wrap(tracing_actix_web::TracingLogger::default())
-            };
-            #[cfg(not(feature = "tracing"))]
-            let app = app
-                .wrap(actix_web::middleware::Logger::default());
+            let app = app.wrap(actix_web::middleware::Logger::default());
 
             #[cfg(feature = "swagger")]
             let app = app.build();
 
             app
         })
-            .workers(numthreads)
-            .bind(format!("0.0.0.0:{}", self.app_port))
-            .expect("Can't bind")
-            .run()
-            .await
+        .workers(numthreads)
+        .bind(format!("0.0.0.0:{}", self.app_port))
+        .expect("Can't bind")
+        .run()
+        .await
     }
-}
-
-fn with_colors() -> bool {
-    std::env::var("NO_COLOR").map_or(true, |v| v.is_empty())
 }
