@@ -8,12 +8,7 @@ keywords = ["http", "web", "actix", "actix-web", "diesel"]
 homepage = "https://github.com/sfisol/serwus"
 repository = "https://github.com/sfisol/serwus"
 documentation = "https://docs.rs/serwus/"
-categories = [
-    "network-programming",
-    "asynchronous",
-    "web-programming::http-server",
-    "web-programming::websocket"
-]
+categories = ["network-programming", "asynchronous", "web-programming::http-server", "web-programming::websocket"]
 license = "MIT OR Apache-2.0"
 edition = "2021"
 
@@ -30,7 +25,7 @@ multidb = ["pgsql", "weighted-rs"]
 swagger = ["paperclip"]
 rabbit = ["amiquip", "crossbeam-channel"]
 prometheus = []
-tracing = ["dep:tracing", "tracing-actix-web", "tracing-subscriber"]
+tracing = ["dep:tracing", "tracing-actix-web", "tracing-subscriber", "tracing-bunyan-formatter"]
 
 [dependencies]
 actix = "0.13"
@@ -68,4 +63,5 @@ colored = "2.0"
 
 tracing-actix-web = { version = "0.7", optional = true }
 tracing = { version = "0.1", optional = true }
-tracing-subscriber = { version = "0.3.16", features = ["env-filter"], optional = true }
+tracing-subscriber = { version = "0.3.16", features = ["env-filter", "tracing-log"], optional = true }
+tracing-bunyan-formatter = { version = "0.3", optional = true }
