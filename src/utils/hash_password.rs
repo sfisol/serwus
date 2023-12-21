@@ -1,6 +1,7 @@
 use quick_error::quick_error;
 use rand::{thread_rng, Rng};
 
+/// Hash password using argon2
 pub fn hash_password(password: String, config: &argon2::Config<'_>) -> Result<String, HashError> {
     // Generate radom salt
     let mut salt = [b'0'; 32];

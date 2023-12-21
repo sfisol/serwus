@@ -18,6 +18,9 @@ mod string_utils;
 mod sanitize;
 pub use sanitize::*;
 
+mod sanitized_string;
+pub use sanitized_string::SanitizedString;
+
 pub mod wrap_display;
 
 #[cfg(feature = "actix-multipart")]

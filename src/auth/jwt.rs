@@ -1,3 +1,5 @@
+//! JWT (Json Web Token)
+
 use actix_web::{
     HttpRequest, Error,
     error::ErrorUnauthorized,
@@ -9,6 +11,7 @@ use jsonwebtoken::{
 use log::warn;
 use serde::{Serialize, de::DeserializeOwned};
 
+/// Object implementing this trait is able to provide a secret (for decoding itself)
 pub trait KnowSecret {
     fn get_secret() -> Vec<u8>;
 }
@@ -21,6 +24,9 @@ where T: Serialize + KnowSecret
     encode(header, object, &EncodingKey::from_secret(&T::get_secret()))
 }
 
+/// Trait allowing to be decoded from string to self using some secret.
+///
+/// Mainly for reading AccessToken from HttpRequest
 pub trait FromEncoded: Sized + KnowSecret {
     fn from_encoded(encoded_token: &str) -> Result<Self, JwtError>;
 }

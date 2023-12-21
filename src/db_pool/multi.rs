@@ -12,6 +12,8 @@ use crate::threads::num_threads;
 
 use super::{Pool, database_url};
 
+/// Pool made of pools, one writable and others read-only with connections to slave replica(s).
+///
 /// Example:
 ///
 /// ```

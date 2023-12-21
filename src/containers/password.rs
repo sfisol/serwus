@@ -2,6 +2,7 @@ use derive_more::Display;
 use serde::{Deserialize, Serializer, Serialize};
 use std::ops::Deref;
 
+/// String wrapper that serializes to 6 asterisks
 #[derive(Clone, Debug, Deserialize, Display, Hash, PartialEq, Eq)]
 #[cfg_attr(feature = "pgsql", derive(diesel_derive_newtype::DieselNewType))]
 #[cfg_attr(feature = "paperclip", derive(paperclip::actix::Apiv2Schema))]
