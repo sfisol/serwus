@@ -1,5 +1,6 @@
 // Simplified code from https://github.com/whatisinternet/Inflector
 
+/// Convert string to camelCase
 pub fn to_camel_case(convertable_string: &str) -> String {
     let mut new_word: bool = false;
     let mut first_word: bool = false;

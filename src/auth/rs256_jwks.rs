@@ -1,3 +1,5 @@
+//! Allows to validate access token against 3rd party authority
+
 use awc::Client;
 use alcoholic_jwt::{token_kid, validate, Validation, JWKS, ValidJWT};
 

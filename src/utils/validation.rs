@@ -1,3 +1,5 @@
+//! Structure for handling validation errors
+
 #[cfg(feature = "actix_validation")]
 use actix_web::error;
 use serde::{Deserialize, Serialize};
@@ -47,7 +49,6 @@ pub fn return_new_dynamic_error(code: &'static str, message: Cow<'static, str>) 
 }
 
 impl ValidationError {
-
     pub fn from(val_errors: &ValidationErrors) -> Self {
 
         let mut validation_error = Self {

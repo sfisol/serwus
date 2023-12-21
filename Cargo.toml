@@ -1,6 +1,6 @@
 [package]
 name = "serwus"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
 description = "Helpers for building actix-web/diesel based services"
 readme = "README.md"
@@ -46,18 +46,19 @@ diesel = { version = "2.1", features = ["postgres", "chrono", "r2d2"], optional 
 diesel-derive-newtype = { version = "2.1", optional = true }
 dotenv = "0.15"
 futures = "0.3"
-jsonwebtoken = { version = "8", optional = true }
+jsonwebtoken = { version = "9", optional = true }
 log = "0.4"
-serwus-derive = { path = "serwus-derive", version = "0.1.0" }
+serwus-derive = { path = "serwus-derive", version = "0.1.1" }
 num_cpus = "1"
 paperclip = { version = "0.8", features = ["actix4", "rust_decimal", "chrono", "swagger-ui"], optional = true }
 quick-error = { version = "2", optional = true }
 r2d2 = { version = "0.8", optional = true }
 rand = { version = "0.8", optional = true }
-rust-argon2 = { version = "1", optional = true }
+rust-argon2 = { version = "2", optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 validator = "0.16"
+validator_derive = "0.16"
 weighted-rs = { version = "0.1", optional = true }
 colored = "2.0"
 

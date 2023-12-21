@@ -13,6 +13,7 @@ use super::multi::MultiPool;
 // Re-export Canceled from serwus_derive for convenience
 pub use serwus_derive::Canceled;
 
+/// Performs query to database as blocking task
 #[cfg(not(feature = "multidb"))]
 pub async fn async_query<F, I, E>(db_pool: Pool, query_func: F) -> Result<I, E>
 where
@@ -30,6 +31,7 @@ where
         .flatten()
 }
 
+/// Performs one or more queries to database in transaction (as blocking task)
 #[cfg(not(feature = "multidb"))]
 pub async fn async_transaction<F, I, E>(db_pool: Pool, query_func: F) -> Result<I, E>
 where
@@ -49,6 +51,7 @@ where
         .flatten()
 }
 
+/// Performs query to database in currently open transaction (as blocking task)
 pub async fn async_query_in_trans<F, I, E>(mut connection: PgConnection, query_func: F) -> Result<I, E>
 where
     F: FnOnce(&mut PgConnection) -> Result<I, E> + Send + 'static,
@@ -64,6 +67,8 @@ where
 }
 
 #[cfg(feature = "multidb")]
+/// Perform read query to one of databases (master or replica(s)) as blocking task.
+///
 /// Keep in mind that this function does not perform a read only transaction,
 /// so write queries can be performed if provided database allows it.
 /// Use async_read_transaction to perform query in real read-only mode.
@@ -83,6 +88,7 @@ where
         .flatten()
 }
 
+/// Perform read/write query to master database as blocking task.
 #[cfg(feature = "multidb")]
 pub async fn async_write_query<F, I, E>(db_pool: MultiPool, query_func: F) -> Result<I, E>
 where
@@ -100,6 +106,7 @@ where
         .flatten()
 }
 
+/// Perform one or more read queries to one of databases (master or replica(s)) as blocking task.
 #[cfg(feature = "multidb")]
 pub async fn async_read_transaction<F, I, E>(db_pool: MultiPool, query_func: F) -> Result<I, E>
 where
@@ -122,6 +129,7 @@ where
         .flatten()
 }
 
+/// Perform read/write query to master database as blocking task.
 #[cfg(feature = "multidb")]
 pub async fn async_write_transaction<F, I, E>(db_pool: MultiPool, query_func: F) -> Result<I, E>
 where

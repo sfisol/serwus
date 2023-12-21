@@ -1,7 +1,11 @@
+/// Depreacted, use [SanitizedString](crate::utils::SanitizedString)
+#[deprecated]
 pub trait Sanitize {
     fn sanitize(&mut self);
 }
 
+/// Depreacted, use [SanitizedString](crate::utils::SanitizedString)
+#[deprecated]
 #[macro_export]
 macro_rules! sanitizable {
     ($model:ident, $( $field:ident ),* ) => {

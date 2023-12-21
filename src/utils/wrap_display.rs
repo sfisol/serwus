@@ -1,3 +1,4 @@
+#[deprecated]
 #[macro_export]
 macro_rules! wrap_display {
     ($id_type: ident) => {

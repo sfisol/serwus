@@ -1,3 +1,5 @@
+//! Simple key->value cache with defined time to live
+
 use std::{
     collections::HashMap,
     hash::Hash,

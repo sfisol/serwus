@@ -1,3 +1,5 @@
+//! Helpers for user authentication (JWT, 3rd-party)
+
 #[cfg(feature = "auth")]
 pub mod jwt;
 
