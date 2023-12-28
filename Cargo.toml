@@ -22,6 +22,7 @@ members = [".", "serwus-derive"]
 
 [features]
 auth = ["jsonwebtoken", "quick-error", "rand", "rust-argon2"]
+actix_validation = []
 rs256_jwks = ["alcoholic_jwt", "awc"]
 default = ["pgsql", "auth", "tracing"]
 pgsql = ["diesel", "diesel-derive-newtype", "r2d2"]
