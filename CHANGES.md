@@ -1,6 +1,12 @@
 <!-- markdownlint-configure-file { "no-duplicate-heading": { "siblings_only": true } } -->
 
 <!-- markdownlint-disable-next-line first-line-h1 -->
+## 0.1.2 - 2024-01-09
+
+### Fixed
+
+* Reinstated rabbit and actix_validation feature to Cargo.toml
+
 ## 0.1.1 - 2023-12-21
 
 ### Added
