@@ -2,10 +2,8 @@ use actix_http::body::MessageBody;
 use actix_web::{
     dev::ServiceResponse,
     http::{header, StatusCode},
-    HttpResponse,
     middleware::ErrorHandlerResponse,
-    ResponseError,
-    Result,
+    HttpResponse, ResponseError, Result,
 };
 use derive_more::Display;
 use serde::Serialize;
@@ -66,12 +64,16 @@ pub const GENERIC_MESSAGE: &str = "Something went wrong. Try again later";
 pub const GENERIC_REASON: &str = "Unknown";
 
 pub struct ErrorBuilder {
-    inner: JsonError
+    inner: JsonError,
 }
 
 impl ErrorBuilder {
     // Starters
-    pub fn new(status_code: StatusCode, r#type: JsonErrorType, reason: impl Display) -> ErrorBuilder {
+    pub fn new(
+        status_code: StatusCode,
+        r#type: JsonErrorType,
+        reason: impl Display,
+    ) -> ErrorBuilder {
         let reason = reason.to_string();
 
         Self {
@@ -83,7 +85,7 @@ impl ErrorBuilder {
                 debug: None,
                 reason,
                 data: None,
-            }
+            },
         }
     }
 
@@ -104,7 +106,11 @@ impl ErrorBuilder {
 
     pub fn custom(sub_type: impl Display, reason: impl Display) -> Self {
         let status_code = StatusCode::INTERNAL_SERVER_ERROR;
-        Self::new(status_code, JsonErrorType::Custom(sub_type.to_string()), reason)
+        Self::new(
+            status_code,
+            JsonErrorType::Custom(sub_type.to_string()),
+            reason,
+        )
     }
 
     // Modifiers
@@ -134,7 +140,10 @@ impl ErrorBuilder {
             .or_else(|err| {
                 let err_str = err.to_string();
                 log::error!("Error serializing error: {}", err_str);
-                Ok::<_, ()>(serde_json::Value::String(format!("Error serializing error: {}", err_str)))
+                Ok::<_, ()>(serde_json::Value::String(format!(
+                    "Error serializing error: {}",
+                    err_str
+                )))
             })
             .ok();
 
@@ -164,27 +173,34 @@ impl ResponseError for JsonError {
 }
 
 /// Middleware for converting plain actix errors into JSON ones with JsonError schema
-pub fn default_error_handler<B: MessageBody + 'static>(res: ServiceResponse<B>) -> Result<ErrorHandlerResponse<B>> {
+pub fn default_error_handler<B: MessageBody + 'static>(
+    res: ServiceResponse<B>,
+) -> Result<ErrorHandlerResponse<B>> {
     // Disassemble service response
     let (req, mut response) = res.into_parts();
 
-    let json_content_type  = header::HeaderValue::from_static("application/json; charset=utf-8");
+    let json_content_type = header::HeaderValue::from_static("application/json; charset=utf-8");
 
     // Rewrite response only if it is an error, but not JSON already
-    let res = if !response.status().is_success() && response.headers().get(header::CONTENT_TYPE) != Some(&json_content_type) {
+    let res = if !response.status().is_success()
+        && response.headers().get(header::CONTENT_TYPE) != Some(&json_content_type)
+    {
         let status_code = response.status();
         let r#type = JsonErrorType::from(status_code);
 
         // Happily error message can be taken from "special place" in response struct,
         // not necessarily from the body which requires waiting.
         // If error message is not provided, take it from status code.
+        let error = response.error();
+
         // TODO: Maybe sometimes it would be better to place this in 'reason' but how to distinguish when?
-        let message = response.error()
+        let message = error
             .map(|err| err.to_string())
             .unwrap_or_else(|| status_code.to_string());
 
-        let debug = "default_error_handler".to_string();
-        let reason = "".to_string();
+        let debug = error
+            .map(|e| format!("{e:?}"))
+            .unwrap_or_else(|| "default_error_handler".to_string());
 
         let err = JsonError {
             status: status_code.as_u16(),
@@ -192,15 +208,19 @@ pub fn default_error_handler<B: MessageBody + 'static>(res: ServiceResponse<B>) 
             r#type,
             message,
             debug: Some(debug),
-            reason,
+            reason: "".to_string(),
             data: None,
         };
 
         // Overwrite response content-type
-        response.headers_mut().insert(header::CONTENT_TYPE, json_content_type);
+        response
+            .headers_mut()
+            .insert(header::CONTENT_TYPE, json_content_type);
 
         // Overwrite response body
-        response.set_body(serde_json::to_string(&err).unwrap()).map_into_boxed_body()
+        response
+            .set_body(serde_json::to_string(&err).unwrap())
+            .map_into_boxed_body()
     } else {
         // Leave response intact
         response.map_into_boxed_body()
