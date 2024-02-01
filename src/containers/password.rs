@@ -1,3 +1,4 @@
+use std::fmt::Formatter;
 use derive_more::Display;
 use serde::{Deserialize, Serializer, Serialize};
 use std::ops::Deref;
@@ -28,5 +29,11 @@ impl Deref for Password {
 impl From<String> for Password {
     fn from(value: String) -> Self {
         Self(value)
+    }
+}
+
+impl std::fmt::Debug for Password {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("********")
     }
 }
