@@ -1,9 +1,10 @@
+use std::fmt::Formatter;
 use derive_more::Display;
 use serde::{Deserialize, Serializer, Serialize};
 use std::ops::Deref;
 
 /// String wrapper that serializes to 6 asterisks
-#[derive(Clone, Debug, Deserialize, Display, Hash, PartialEq, Eq)]
+#[derive(Clone, Deserialize, Display, Hash, PartialEq, Eq)]
 #[cfg_attr(feature = "pgsql", derive(diesel_derive_newtype::DieselNewType))]
 #[cfg_attr(feature = "paperclip", derive(paperclip::actix::Apiv2Schema))]
 pub struct Password(pub String);
@@ -28,5 +29,11 @@ impl Deref for Password {
 impl From<String> for Password {
     fn from(value: String) -> Self {
         Self(value)
+    }
+}
+
+impl std::fmt::Debug for Password {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("********")
     }
 }
