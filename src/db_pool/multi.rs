@@ -1,16 +1,18 @@
 //! Pool made of pools, one writable and others read-only with connections to slave replica(s).
 
-use diesel::pg::PgConnection;
-use diesel::r2d2::ConnectionManager;
-use r2d2::{self, Error, PooledConnection};
-use std::env;
+use std::{
+    env,
+    sync::{Arc, Mutex},
+};
+
+use diesel::{pg::PgConnection, r2d2::ConnectionManager};
 use log::{error, info};
-use weighted_rs::{Weight, RoundrobinWeight};
-use std::sync::{Arc, Mutex};
+use r2d2::{Error, PooledConnection};
+use weighted_rs::{RoundrobinWeight, Weight};
 
 use crate::threads::num_threads;
 
-use super::{Pool, database_url};
+use super::{database_url, Pool};
 
 /// Pool made of pools, one writable and others read-only with connections to slave replica(s).
 ///
@@ -114,7 +116,7 @@ impl<'a> MultiPoolBuilder<'a> {
                     .map_err(|err| {
                         error!("Can't connect to database: {}", err);
                         InitMultiError::MasterFailed(err)
-                    })?
+                    })?,
             )
         };
 
@@ -131,25 +133,31 @@ impl<'a> MultiPoolBuilder<'a> {
                     .map_err(|err| {
                         error!("Can't connect to database: {}", err);
                         InitMultiError::MirrorFailed((url, err))
-                    })?
+                    })?,
             );
 
             dispatcher.add(mirrors.len() - 1, 1);
         }
 
         if self.read_only {
-            info!("Initialized read only pool with {} nodes with {} conns each", mirrors.len(), max_size);
+            info!(
+                "Initialized read only pool with {} nodes with {} conns each",
+                mirrors.len(),
+                max_size
+            );
         } else {
-            info!("Initialized writable pool with {} read mirror(s) with {} conns each", mirrors.len(), max_size);
+            info!(
+                "Initialized writable pool with {} read mirror(s) with {} conns each",
+                mirrors.len(),
+                max_size
+            );
         }
 
-        Ok(
-            MultiPool {
-                master,
-                mirrors,
-                dispatcher: Arc::new(Mutex::new(dispatcher))
-            }
-        )
+        Ok(MultiPool {
+            master,
+            mirrors,
+            dispatcher: Arc::new(Mutex::new(dispatcher)),
+        })
     }
 }
 
@@ -177,10 +185,6 @@ impl MultiPool {
 
 fn database_mirrors_urls(env_name: &str) -> Vec<String> {
     env::var(env_name)
-        .map(|value|
-            value.split(',')
-                .map(String::from)
-                .collect()
-        )
+        .map(|value| value.split(',').map(String::from).collect())
         .unwrap_or_default()
 }

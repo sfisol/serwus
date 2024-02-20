@@ -1,8 +1,5 @@
 use diesel::Identifiable;
-use std::{
-    cmp::Ord,
-    collections::BTreeMap,
-};
+use std::collections::BTreeMap;
 
 /// If `D` is `Identifiable`, then this trait allows to convert `Vec<D>`` into `BTreeMap<D::Id, D>`
 pub trait AsMap<'a, D: 'a>
