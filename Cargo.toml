@@ -26,6 +26,7 @@ swagger = ["paperclip"]
 rabbit = ["amiquip", "crossbeam-channel"]
 prometheus = []
 tracing = ["dep:tracing", "tracing-actix-web", "tracing-subscriber", "tracing-bunyan-formatter"]
+metrics = ["dep:metrics", "metrics-exporter-prometheus", "lazy_static", "futures-util"]
 
 [dependencies]
 actix = "0.13"
@@ -65,3 +66,8 @@ tracing-actix-web = { version = "0.7.8", optional = true }
 tracing = { version = "0.1.40", features = ["log"], optional = true }
 tracing-subscriber = { version = "0.3.16", features = ["env-filter", "tracing-log"], optional = true }
 tracing-bunyan-formatter = { version = "0.3", optional = true }
+
+metrics = { version = "0.22.1", optional = true }
+metrics-exporter-prometheus = { version = "0.13.1", optional = true }
+lazy_static = { version = "1.4.0", optional = true }
+futures-util = { version = "0.3.30", optional = true }

@@ -5,6 +5,8 @@ mod builder;
 pub mod json_error;
 #[cfg(feature = "prometheus")]
 pub mod prometheus;
+#[cfg(feature = "metrics")]
+pub mod metrics;
 pub mod stats;
 
 use actix_cors::Cors;
