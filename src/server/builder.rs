@@ -160,6 +160,12 @@ impl<'a> Serwus<'a> {
                 actix_web::web::get().to(super::prometheus::prometheus_stats_handler::<T, D>),
             );
 
+            #[cfg(feature = "metrics")]
+            let app = app.wrap(super::metrics::middleware::Metrics).route(
+                "metrics",
+                actix_web::web::get().to(super::metrics::handler::metrics),
+            );
+
             #[cfg(feature = "swagger")]
             let app = if prod_env {
                 app.wrap_api()
