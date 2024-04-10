@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 
 use serde::{Deserialize, Deserializer, Serialize};
-use validator::HasLen;
 
 /// Wrapper for String that gets automatically trimmed during deserialization
 #[cfg_attr(feature = "swagger", derive(paperclip::actix::Apiv2Schema))]
@@ -40,12 +39,6 @@ impl<'a> From<&'a SanitizedString> for Cow<'a, str> {
 impl From<String> for SanitizedString {
     fn from(value: String) -> Self {
         Self(value)
-    }
-}
-
-impl HasLen for &SanitizedString {
-    fn length(&self) -> u64 {
-        self.0.length()
     }
 }
 

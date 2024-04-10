@@ -1,6 +1,6 @@
-use std::fmt::Formatter;
 use derive_more::Display;
-use serde::{Deserialize, Serializer, Serialize};
+use serde::{Deserialize, Serialize, Serializer};
+use std::fmt::Formatter;
 use std::ops::Deref;
 
 /// String wrapper that serializes to 6 asterisks
@@ -12,7 +12,7 @@ pub struct Password(pub String);
 impl Serialize for Password {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-            S: Serializer
+        S: Serializer,
     {
         serializer.serialize_str("******")
     }

@@ -2,15 +2,14 @@ use actix_multipart::{Multipart, MultipartError};
 use actix_web::error::PayloadError;
 use bytes::{Bytes, BytesMut};
 use futures::TryStreamExt;
-use validator::HasLen;
+use validator::ValidateLength;
 
 /// Helper for reading multipart/form-data, returning vector of read bytes.
 pub async fn read_bytes(
     mut payload: Multipart,
     max_parts: u64,
-    max_upload_size: usize
+    max_upload_size: usize,
 ) -> Result<Vec<(Bytes, i32, Option<String>)>, MultipartError> {
-
     let mut files = Vec::new();
     // Used to set default position if there is no name or value is not integer
     let mut incr_default_position = 0;
@@ -29,7 +28,7 @@ pub async fn read_bytes(
         }
 
         if !file.is_empty() {
-            let position:i32 = field
+            let position: i32 = field
                 .content_disposition()
                 .get_name()
                 .and_then(|r| r.parse::<i32>().ok())
@@ -38,16 +37,17 @@ pub async fn read_bytes(
             files.push((
                 file.freeze(),
                 position,
-                field.headers()
+                field
+                    .headers()
                     .get("Content-Disposition")
-                    .and_then(|v| v.to_str().ok().map(String::from))
+                    .and_then(|v| v.to_str().ok().map(String::from)),
             ));
         }
 
         incr_default_position += 1; // Increment default position
 
-        if files.length() >= max_parts {
-            break
+        if files.length() >= Some(max_parts) {
+            break;
         }
     }
 
