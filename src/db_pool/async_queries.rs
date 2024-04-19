@@ -1,8 +1,7 @@
+use std::convert;
+
 use actix_web::web;
-use diesel::{
-    Connection,
-    pg::PgConnection,
-};
+use diesel::{pg::PgConnection, Connection};
 
 #[cfg(not(feature = "multidb"))]
 use super::Pool;
@@ -23,12 +22,11 @@ where
 {
     web::block(move || {
         let mut connection = db_pool.get()?;
-        query_func(&mut connection)
-            .map_err(From::from)
+        query_func(&mut connection).map_err(From::from)
     })
-        .await
-        .map_err(From::from)
-        .flatten()
+    .await
+    .map_err(From::from)
+    .and_then(convert::identity)
 }
 
 /// Performs one or more queries to database in transaction (as blocking task)
@@ -37,33 +35,36 @@ pub async fn async_transaction<F, I, E>(db_pool: Pool, query_func: F) -> Result<
 where
     F: FnOnce(&mut PgConnection) -> Result<I, E> + Send + 'static,
     I: Send + 'static,
-    E: From<actix_web::error::BlockingError> + From<r2d2::Error> + From<diesel::result::Error> + std::fmt::Debug + Send + 'static,
+    E: From<actix_web::error::BlockingError>
+        + From<r2d2::Error>
+        + From<diesel::result::Error>
+        + std::fmt::Debug
+        + Send
+        + 'static,
 {
     web::block(move || {
         let mut connection = db_pool.get()?;
-        connection.transaction(|connection|
-            query_func(connection)
-                .map_err(From::from)
-        )
+        connection.transaction(|connection| query_func(connection).map_err(From::from))
     })
-        .await
-        .map_err(From::from)
-        .flatten()
+    .await
+    .map_err(From::from)
+    .and_then(convert::identity)
 }
 
 /// Performs query to database in currently open transaction (as blocking task)
-pub async fn async_query_in_trans<F, I, E>(mut connection: PgConnection, query_func: F) -> Result<I, E>
+pub async fn async_query_in_trans<F, I, E>(
+    mut connection: PgConnection,
+    query_func: F,
+) -> Result<I, E>
 where
     F: FnOnce(&mut PgConnection) -> Result<I, E> + Send + 'static,
     I: Send + 'static,
     E: From<actix_web::error::BlockingError> + From<r2d2::Error> + std::fmt::Debug + Send + 'static,
 {
-    web::block(move || {
-        query_func(&mut connection)
-    })
+    web::block(move || query_func(&mut connection))
         .await
         .map_err(From::from)
-        .flatten()
+        .and_then(convert::identity)
 }
 
 #[cfg(feature = "multidb")]
@@ -80,12 +81,11 @@ where
 {
     web::block(move || {
         let mut connection = db_pool.read()?;
-        query_func(&mut connection)
-            .map_err(From::from)
+        query_func(&mut connection).map_err(From::from)
     })
-        .await
-        .map_err(From::from)
-        .flatten()
+    .await
+    .map_err(From::from)
+    .and_then(convert::identity)
 }
 
 /// Perform read/write query to master database as blocking task.
@@ -98,12 +98,11 @@ where
 {
     web::block(move || {
         let mut connection = db_pool.write()?;
-        query_func(&mut connection)
-            .map_err(From::from)
+        query_func(&mut connection).map_err(From::from)
     })
-        .await
-        .map_err(From::from)
-        .flatten()
+    .await
+    .map_err(From::from)
+    .and_then(convert::identity)
 }
 
 /// Perform one or more read queries to one of databases (master or replica(s)) as blocking task.
@@ -112,21 +111,25 @@ pub async fn async_read_transaction<F, I, E>(db_pool: MultiPool, query_func: F) 
 where
     F: FnOnce(&mut PgConnection) -> Result<I, E> + Send + 'static,
     I: Send + 'static,
-    E: From<actix_web::error::BlockingError> + From<r2d2::Error> + From<diesel::result::Error> + std::fmt::Debug + Send + 'static,
+    E: From<actix_web::error::BlockingError>
+        + From<r2d2::Error>
+        + From<diesel::result::Error>
+        + std::fmt::Debug
+        + Send
+        + 'static,
 {
-    use diesel::{RunQueryDsl, sql_query};
+    use diesel::{sql_query, RunQueryDsl};
 
     web::block(move || {
         let mut connection = db_pool.read()?;
         connection.transaction(|connection| {
             sql_query("SET TRANSACTION READ ONLY").execute(connection)?;
-            query_func(connection)
-                .map_err(From::from)
+            query_func(connection).map_err(From::from)
         })
     })
-        .await
-        .map_err(From::from)
-        .flatten()
+    .await
+    .map_err(From::from)
+    .and_then(convert::identity)
 }
 
 /// Perform read/write query to master database as blocking task.
@@ -135,16 +138,18 @@ pub async fn async_write_transaction<F, I, E>(db_pool: MultiPool, query_func: F)
 where
     F: FnOnce(&mut PgConnection) -> Result<I, E> + Send + 'static,
     I: Send + 'static,
-    E: From<actix_web::error::BlockingError> + From<r2d2::Error> + From<diesel::result::Error> + std::fmt::Debug + Send + 'static,
+    E: From<actix_web::error::BlockingError>
+        + From<r2d2::Error>
+        + From<diesel::result::Error>
+        + std::fmt::Debug
+        + Send
+        + 'static,
 {
     web::block(move || {
         let mut connection = db_pool.write()?;
-        connection.transaction(|connection|
-            query_func(connection)
-                .map_err(From::from)
-        )
+        connection.transaction(|connection| query_func(connection).map_err(From::from))
     })
-        .await
-        .map_err(From::from)
-        .flatten()
+    .await
+    .map_err(From::from)
+    .and_then(convert::identity)
 }
