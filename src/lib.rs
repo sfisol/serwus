@@ -39,10 +39,7 @@
 //! }
 //! ```
 
-
 #![deny(clippy::all)]
-
-#![feature(result_flattening)]
 
 pub mod containers;
 pub mod utils;
@@ -62,11 +59,11 @@ pub mod pagination;
 
 pub mod logger;
 
+#[cfg(not(feature = "swagger"))]
+pub use actix_web::web;
 /// Re-export of `web` from `actix-web` or from `paperclip` if swagger feature enabled.
 #[cfg(feature = "swagger")]
 pub use paperclip::actix::web;
-#[cfg(not(feature = "swagger"))]
-pub use actix_web::web;
 
 /// Automatic implementation of [StatsPresenter](server::stats::StatsPresenter)
 ///
