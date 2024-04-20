@@ -1,11 +1,12 @@
-use diesel::pg::PgConnection;
 use diesel::r2d2::ConnectionManager;
 use std::env;
 use log::{error, info};
 
 use crate::threads::num_threads;
 
-pub type Pool = diesel::r2d2::Pool<ConnectionManager<PgConnection>>;
+use super::DbConnection;
+
+pub type Pool = diesel::r2d2::Pool<ConnectionManager<DbConnection>>;
 
 /// Init pool of N connections to single database, where N is number of threads (but not less than 2).
 ///
@@ -23,7 +24,7 @@ pub fn init_default_pool() -> Result<Pool, r2d2::Error> {
 pub fn init_pool(size: usize) -> Result<Pool, r2d2::Error> {
     info!("Connecting to database");
 
-    let manager = ConnectionManager::<PgConnection>::new(default_database_url());
+    let manager = ConnectionManager::<DbConnection>::new(default_database_url());
 
     let max_size = if env::var("TEST").is_ok() && size > 2 {
         2

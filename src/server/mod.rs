@@ -25,10 +25,6 @@ use actix_web::web;
 use paperclip::actix::{web, OpenApiExt};
 
 use super::threads;
-
-#[cfg(feature = "pgsql")]
-use super::db_pool;
-
 use super::logger;
 
 pub use app_data::{DefaultAppData, default_app_data};

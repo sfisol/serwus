@@ -5,14 +5,14 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use diesel::{pg::PgConnection, r2d2::ConnectionManager};
+use diesel::r2d2::ConnectionManager;
 use log::{error, info};
 use r2d2::{Error, PooledConnection};
 use weighted_rs::{RoundrobinWeight, Weight};
 
 use crate::threads::num_threads;
 
-use super::{database_url, Pool};
+use super::{database_url, Pool, DbConnection};
 
 /// Pool made of pools, one writable and others read-only with connections to slave replica(s).
 ///
@@ -106,7 +106,7 @@ impl<'a> MultiPoolBuilder<'a> {
         let master = if self.read_only {
             None
         } else {
-            let manager = ConnectionManager::<PgConnection>::new(database_url(self.write_url_env));
+            let manager = ConnectionManager::<DbConnection>::new(database_url(self.write_url_env));
 
             #[allow(clippy::cast_possible_truncation)]
             Some(
@@ -124,7 +124,7 @@ impl<'a> MultiPoolBuilder<'a> {
         let mut dispatcher = RoundrobinWeight::new();
 
         for url in database_mirrors_urls(self.read_url_env) {
-            let manager = ConnectionManager::<PgConnection>::new(url.clone());
+            let manager = ConnectionManager::<DbConnection>::new(url.clone());
 
             mirrors.push(
                 Pool::builder()
@@ -162,11 +162,11 @@ impl<'a> MultiPoolBuilder<'a> {
 }
 
 impl MultiPool {
-    pub fn write(&self) -> Result<PooledConnection<ConnectionManager<PgConnection>>, Error> {
+    pub fn write(&self) -> Result<PooledConnection<ConnectionManager<DbConnection>>, Error> {
         self.master.as_ref().expect("Readonly database pool").get()
     }
 
-    pub fn read(&self) -> Result<PooledConnection<ConnectionManager<PgConnection>>, Error> {
+    pub fn read(&self) -> Result<PooledConnection<ConnectionManager<DbConnection>>, Error> {
         let n_opt = match self.dispatcher.lock() {
             Ok(mut dispatcher) => dispatcher.next(),
             Err(_) => {

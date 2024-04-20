@@ -1,8 +1,11 @@
 use diesel::{
-    pg::Pg, prelude::*, query_builder::*, query_dsl::methods::LoadQuery, sql_types::BigInt,
+    prelude::*, query_builder::*, query_dsl::methods::LoadQuery, sql_types::BigInt,
 };
 
 use crate::containers::ListResponse;
+use crate::db_pool::{Db, DbConnection};
+
+
 
 pub trait Paginate: Sized {
     fn paginate(self, page: i64) -> Paginated<Self>;
@@ -41,10 +44,10 @@ impl<T> Paginated<T> {
 
     pub fn load_and_count_pages<'a, U>(
         self,
-        conn: &mut PgConnection,
+        conn: &mut DbConnection,
     ) -> QueryResult<ListResponse<U>>
     where
-        Self: LoadQuery<'a, PgConnection, (U, i64)>,
+        Self: LoadQuery<'a, DbConnection, (U, i64)>,
     {
         let per_page = self.per_page;
         let page = self.page;
@@ -69,13 +72,13 @@ impl<T: Query> Query for Paginated<T> {
     type SqlType = (T::SqlType, BigInt);
 }
 
-impl<T> RunQueryDsl<PgConnection> for Paginated<T> {}
+impl<T> RunQueryDsl<DbConnection> for Paginated<T> {}
 
-impl<T> QueryFragment<Pg> for Paginated<T>
+impl<T> QueryFragment<Db> for Paginated<T>
 where
-    T: QueryFragment<Pg>,
+    T: QueryFragment<Db>,
 {
-    fn walk_ast<'b>(&'b self, mut out: AstPass<'_, 'b, Pg>) -> QueryResult<()> {
+    fn walk_ast<'b>(&'b self, mut out: AstPass<'_, 'b, Db>) -> QueryResult<()> {
         out.push_sql("SELECT *, COUNT(*) OVER () FROM (");
         self.query.walk_ast(out.reborrow())?;
         out.push_sql(") t LIMIT ");
