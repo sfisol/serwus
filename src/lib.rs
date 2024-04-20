@@ -45,7 +45,7 @@ pub mod containers;
 pub mod utils;
 
 pub mod auth;
-#[cfg(feature = "pgsql")]
+#[cfg(any(feature = "pgsql", feature = "mysql"))]
 pub mod db_pool;
 
 pub mod server;
@@ -54,14 +54,14 @@ pub mod return_logged;
 
 pub mod threads;
 
-#[cfg(feature = "pgsql")]
+#[cfg(any(feature = "pgsql", feature = "mysql"))]
 pub mod pagination;
 
 pub mod logger;
 
+/// Re-export of `web` from `actix-web` or from `paperclip` if swagger feature enabled.
 #[cfg(not(feature = "swagger"))]
 pub use actix_web::web;
-/// Re-export of `web` from `actix-web` or from `paperclip` if swagger feature enabled.
 #[cfg(feature = "swagger")]
 pub use paperclip::actix::web;
 

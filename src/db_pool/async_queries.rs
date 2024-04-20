@@ -1,7 +1,9 @@
 use std::convert;
 
 use actix_web::web;
-use diesel::{pg::PgConnection, Connection};
+use diesel::Connection;
+
+use super::DbConnection;
 
 #[cfg(not(feature = "multidb"))]
 use super::Pool;
@@ -16,7 +18,7 @@ pub use serwus_derive::Canceled;
 #[cfg(not(feature = "multidb"))]
 pub async fn async_query<F, I, E>(db_pool: Pool, query_func: F) -> Result<I, E>
 where
-    F: FnOnce(&mut PgConnection) -> Result<I, E> + Send + 'static,
+    F: FnOnce(&mut DbConnection) -> Result<I, E> + Send + 'static,
     I: Send + 'static,
     E: From<actix_web::error::BlockingError> + From<r2d2::Error> + std::fmt::Debug + Send + 'static,
 {
@@ -33,7 +35,7 @@ where
 #[cfg(not(feature = "multidb"))]
 pub async fn async_transaction<F, I, E>(db_pool: Pool, query_func: F) -> Result<I, E>
 where
-    F: FnOnce(&mut PgConnection) -> Result<I, E> + Send + 'static,
+    F: FnOnce(&mut DbConnection) -> Result<I, E> + Send + 'static,
     I: Send + 'static,
     E: From<actix_web::error::BlockingError>
         + From<r2d2::Error>
@@ -53,11 +55,11 @@ where
 
 /// Performs query to database in currently open transaction (as blocking task)
 pub async fn async_query_in_trans<F, I, E>(
-    mut connection: PgConnection,
+    mut connection: DbConnection,
     query_func: F,
 ) -> Result<I, E>
 where
-    F: FnOnce(&mut PgConnection) -> Result<I, E> + Send + 'static,
+    F: FnOnce(&mut DbConnection) -> Result<I, E> + Send + 'static,
     I: Send + 'static,
     E: From<actix_web::error::BlockingError> + From<r2d2::Error> + std::fmt::Debug + Send + 'static,
 {
@@ -75,7 +77,7 @@ where
 /// Use async_read_transaction to perform query in real read-only mode.
 pub async fn async_read_query<F, I, E>(db_pool: MultiPool, query_func: F) -> Result<I, E>
 where
-    F: FnOnce(&mut PgConnection) -> Result<I, E> + Send + 'static,
+    F: FnOnce(&mut DbConnection) -> Result<I, E> + Send + 'static,
     I: Send + 'static,
     E: From<actix_web::error::BlockingError> + From<r2d2::Error> + std::fmt::Debug + Send + 'static,
 {
@@ -92,7 +94,7 @@ where
 #[cfg(feature = "multidb")]
 pub async fn async_write_query<F, I, E>(db_pool: MultiPool, query_func: F) -> Result<I, E>
 where
-    F: FnOnce(&mut PgConnection) -> Result<I, E> + Send + 'static,
+    F: FnOnce(&mut DbConnection) -> Result<I, E> + Send + 'static,
     I: Send + 'static,
     E: From<actix_web::error::BlockingError> + From<r2d2::Error> + std::fmt::Debug + Send + 'static,
 {
@@ -109,7 +111,7 @@ where
 #[cfg(feature = "multidb")]
 pub async fn async_read_transaction<F, I, E>(db_pool: MultiPool, query_func: F) -> Result<I, E>
 where
-    F: FnOnce(&mut PgConnection) -> Result<I, E> + Send + 'static,
+    F: FnOnce(&mut DbConnection) -> Result<I, E> + Send + 'static,
     I: Send + 'static,
     E: From<actix_web::error::BlockingError>
         + From<r2d2::Error>
@@ -136,7 +138,7 @@ where
 #[cfg(feature = "multidb")]
 pub async fn async_write_transaction<F, I, E>(db_pool: MultiPool, query_func: F) -> Result<I, E>
 where
-    F: FnOnce(&mut PgConnection) -> Result<I, E> + Send + 'static,
+    F: FnOnce(&mut DbConnection) -> Result<I, E> + Send + 'static,
     I: Send + 'static,
     E: From<actix_web::error::BlockingError>
         + From<r2d2::Error>
