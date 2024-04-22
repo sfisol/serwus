@@ -1,6 +1,20 @@
 <!-- markdownlint-configure-file { "no-duplicate-heading": { "siblings_only": true } } -->
 
 <!-- markdownlint-disable-next-line first-line-h1 -->
+## 0.2.0 - 2024-04-22
+
+### Added
+
+* Stable rust compatibility (Remove need for `result_flattening`)
+* Prometheus metrics via `metrics-rs`
+* Mysql support
+
+### Changed
+
+* Add debug info to errors in default error handler
+* Use bunyan format for tracing
+* Obfuscate passwords in logs
+
 ## 0.1.2 - 2024-01-09
 
 ### Fixed
