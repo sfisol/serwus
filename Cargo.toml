@@ -1,6 +1,6 @@
 [package]
 name = "serwus"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
 description = "Helpers for building actix-web/diesel based services"
 readme = "README.md"
@@ -49,7 +49,7 @@ dotenv = "0.15"
 futures = "0.3"
 jsonwebtoken = { version = "9", optional = true }
 log = "0.4"
-serwus-derive = { path = "serwus-derive", version = "0.1.2" }
+serwus-derive = { path = "serwus-derive", version = "0.2" }
 num_cpus = "1"
 paperclip = { version = "0.8", features = ["actix4", "rust_decimal", "chrono", "swagger-ui"], optional = true }
 quick-error = { version = "2", optional = true }
