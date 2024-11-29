@@ -7,7 +7,7 @@ use actix_web::{
 };
 use derive_more::Display;
 use serde::Serialize;
-use std::fmt::{Debug, Display};
+use std::fmt::Debug;
 
 pub use serwus_derive::ResponseFromBuilder;
 
@@ -40,7 +40,7 @@ impl From<StatusCode> for JsonErrorType {
 
 #[derive(Debug, Display, Serialize)]
 #[cfg_attr(feature = "swagger", derive(paperclip::actix::Apiv2Schema))]
-#[display(fmt = "{} ({}) {}", status_code, r#type, message)]
+#[display("{} ({}) {}", status_code, r#type, message)]
 pub struct JsonError {
     // Skip `status_code` field to allow to derive Apiv2Schema without wrapping StatusCode type;
     // document and serialize field `status` instead.

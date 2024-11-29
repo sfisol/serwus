@@ -30,8 +30,11 @@ pub async fn read_bytes(
         if !file.is_empty() {
             let position: i32 = field
                 .content_disposition()
-                .get_name()
-                .and_then(|r| r.parse::<i32>().ok())
+                .and_then(|content_disposition| {
+                    content_disposition
+                        .get_name()
+                        .and_then(|r| r.parse::<i32>().ok())
+                })
                 .unwrap_or(incr_default_position);
 
             files.push((
