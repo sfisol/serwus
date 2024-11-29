@@ -62,7 +62,7 @@ impl<K: Hash + Eq, V> CacheMap<K,V> {
     }
 }
 
-impl <'a, K, V> Entry<'a, K, V> {
+impl<K, V> Entry<'_, K, V> {
     pub fn is_fresh(&self) -> bool {
         self.value.is_fresh(self.container.ttl)
     }

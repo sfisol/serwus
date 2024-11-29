@@ -57,7 +57,7 @@ pub struct MultiPoolBuilder<'a> {
     read_only: bool,
 }
 
-impl<'a> Default for MultiPoolBuilder<'a> {
+impl Default for MultiPoolBuilder<'_> {
     fn default() -> Self {
         let nthreads = num_threads();
         Self {
