@@ -15,12 +15,9 @@ use crate::server::json_error::default_error_handler;
 
 use super::threads;
 
-use super::{
-    logger,
-    stats::{
-        default_healthcheck_handler, default_readiness_handler, default_stats_handler,
-        AppDataWrapper, BaseStats, StatsPresenter, StatsWrapper,
-    },
+use super::stats::{
+    default_healthcheck_handler, default_readiness_handler, default_stats_handler,
+    AppDataWrapper, BaseStats, StatsPresenter, StatsWrapper,
 };
 
 pub struct Serwus<'a> {
@@ -105,17 +102,7 @@ impl<'a> Serwus<'a> {
         dotenv().ok();
 
         #[cfg(feature = "tracing")]
-        {
-            use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
-            use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
-            use tracing_subscriber::util::SubscriberInitExt;
-
-            tracing_subscriber::registry()
-                .with(tracing_subscriber::EnvFilter::new(logger::logger_level()))
-                .with(JsonStorageLayer)
-                .with(BunyanFormattingLayer::new("serwus".into(), std::io::stdout))
-                .init();
-        }
+        super::tracing::register_tracing();
 
         #[cfg(not(feature = "tracing"))]
         match logger::init_logger() {
@@ -191,7 +178,9 @@ impl<'a> Serwus<'a> {
                 });
 
             #[cfg(feature = "tracing")]
-            let app = app.wrap(tracing_actix_web::TracingLogger::default());
+            let app = app.wrap(
+                tracing_actix_web::TracingLogger::<super::tracing::TracingSpanBuilder>::new()
+            );
 
             let app = app.wrap(actix_web::middleware::Logger::default());
 

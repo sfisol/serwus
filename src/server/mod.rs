@@ -8,6 +8,8 @@ pub mod prometheus;
 #[cfg(feature = "metrics")]
 pub mod metrics;
 pub mod stats;
+#[cfg(feature = "tracing")]
+pub mod tracing;
 
 use actix_cors::Cors;
 use actix_http::Request;
@@ -25,7 +27,6 @@ use actix_web::web;
 use paperclip::actix::{web, OpenApiExt};
 
 use super::threads;
-use super::logger;
 
 pub use app_data::{DefaultAppData, default_app_data};
 pub use builder::Serwus;

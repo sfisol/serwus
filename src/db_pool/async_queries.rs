@@ -83,7 +83,7 @@ where
 {
     web::block(move || {
         let mut connection = db_pool.read()?;
-        query_func(&mut connection).map_err(From::from)
+        query_func(&mut connection)
     })
     .await
     .map_err(From::from)
@@ -100,7 +100,7 @@ where
 {
     web::block(move || {
         let mut connection = db_pool.write()?;
-        query_func(&mut connection).map_err(From::from)
+        query_func(&mut connection)
     })
     .await
     .map_err(From::from)
@@ -126,7 +126,7 @@ where
         let mut connection = db_pool.read()?;
         connection.transaction(|connection| {
             sql_query("SET TRANSACTION READ ONLY").execute(connection)?;
-            query_func(connection).map_err(From::from)
+            query_func(connection)
         })
     })
     .await
@@ -149,7 +149,7 @@ where
 {
     web::block(move || {
         let mut connection = db_pool.write()?;
-        connection.transaction(|connection| query_func(connection).map_err(From::from))
+        connection.transaction(|connection| query_func(connection))
     })
     .await
     .map_err(From::from)
