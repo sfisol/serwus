@@ -105,7 +105,7 @@ impl<'a> Serwus<'a> {
         super::tracing::register_tracing();
 
         #[cfg(not(feature = "tracing"))]
-        match logger::init_logger() {
+        match crate::logger::init_logger() {
             Ok(_) => log::info!("Logger has been initialized"),
             Err(_) => log::error!("Error logger initialization"),
         };

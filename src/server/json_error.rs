@@ -5,13 +5,12 @@ use actix_web::{
     middleware::ErrorHandlerResponse,
     HttpResponse, ResponseError, Result,
 };
-use derive_more::Display;
 use serde::Serialize;
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 
 pub use serwus_derive::ResponseFromBuilder;
 
-#[derive(Debug, Display, Serialize)]
+#[derive(Debug, derive_more::Display, Serialize)]
 #[cfg_attr(feature = "swagger", derive(paperclip::actix::Apiv2Schema))]
 pub enum JsonErrorType {
     BadRequest,
@@ -38,7 +37,7 @@ impl From<StatusCode> for JsonErrorType {
     }
 }
 
-#[derive(Debug, Display, Serialize)]
+#[derive(Debug, derive_more::Display, Serialize)]
 #[cfg_attr(feature = "swagger", derive(paperclip::actix::Apiv2Schema))]
 #[display("{} ({}) {}", status_code, r#type, message)]
 pub struct JsonError {

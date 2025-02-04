@@ -58,8 +58,8 @@ impl ValidationError {
 
         for (field_key, field_val) in val_errors.field_errors().iter() {
             for val in field_val.iter() {
-                if validation_error.errors.contains_key(*field_key) {
-                    if let Some(x) = validation_error.errors.get_mut(*field_key) {
+                if validation_error.errors.contains_key(field_key.as_ref()) {
+                    if let Some(x) = validation_error.errors.get_mut(field_key.as_ref()) {
                         match &val.message {
                             Some(v) => x.push(
                                 Error {

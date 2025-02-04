@@ -17,7 +17,12 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: -p serwus --all-features -- -Dwarnings
-          name: Serwus Clippy Output
+          name: Serwus Clippy Output all-features
+      - uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: -p serwus --no-default-features -- -Dwarnings
+          name: Serwus Clippy Output no-features
 
   nightly-tests:
     name: Nightly tests
@@ -32,6 +37,10 @@ jobs:
         with:
           command: test
           args: -p serwus --all-features
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -p serwus --no-default-features
 
   stable-clippy:
     name: Stable clippy
@@ -48,7 +57,12 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-features
-          name: Clippy Output
+          name: Clippy Output all-features
+      - uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --no-default-features
+          name: Clippy Output no-features
 
   stable-tests:
     name: Stable tests
@@ -63,3 +77,7 @@ jobs:
         with:
           command: test
           args: --all-features
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --no-default-features

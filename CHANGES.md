@@ -1,11 +1,12 @@
 <!-- markdownlint-configure-file { "no-duplicate-heading": { "siblings_only": true } } -->
 
 <!-- markdownlint-disable-next-line first-line-h1 -->
-## 0.2.1 - 2024-04-22
+## 0.2.1 - 2025-02-04
 
 ### Changed
 
 * Tracing feature now prints special handlers in lowered debug log level (/metrics, /_healthcheck, etc.)
+* Updated paperclip to 0.9
 
 ## 0.2.0 - 2024-04-22
 
