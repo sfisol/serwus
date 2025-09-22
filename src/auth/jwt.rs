@@ -1,11 +1,8 @@
 //! JWT (Json Web Token)
 
-use actix_web::{
-    HttpRequest, Error,
-    error::ErrorUnauthorized,
-};
+use actix_web::{Error, HttpRequest, error::ErrorUnauthorized};
 use jsonwebtoken::{
-    encode, decode, Header, Validation, DecodingKey, EncodingKey,
+    DecodingKey, EncodingKey, Header, Validation, decode, encode,
     errors::{Error as JwtError, ErrorKind::ExpiredSignature},
 };
 use log::warn;
@@ -18,7 +15,8 @@ pub trait KnowSecret {
 
 // TODO: Unify logic for AccessToken and UserToken
 pub fn encode_jwt<T>(object: &T) -> Result<String, JwtError>
-where T: Serialize + KnowSecret
+where
+    T: Serialize + KnowSecret,
 {
     let header: &Header = &Header::default();
     encode(header, object, &EncodingKey::from_secret(&T::get_secret()))
@@ -36,22 +34,28 @@ impl<T: DeserializeOwned + KnowSecret> FromEncoded for T {
         let header: &Header = &Header::default();
         let validation: &Validation = &Validation::new(header.alg);
 
-        decode::<T>(encoded_token, &DecodingKey::from_secret(&T::get_secret()), validation)
-            .map(|data| data.claims)
+        decode::<T>(
+            encoded_token,
+            &DecodingKey::from_secret(&T::get_secret()),
+            validation,
+        )
+        .map(|data| data.claims)
     }
 }
 
 // TODO: If FromRequest returns Unauthorized, additional headers should be added like WWW-Authorization.
 //       See: https://developer.mozilla.org/pl/docs/Web/HTTP/Headers/WWW-Authenticate
 pub fn from_request<T: Sized + FromEncoded>(req: &HttpRequest) -> Result<T, Error> {
-    let encoded_tokens: Vec<_> = req.headers().get_all("Authorization")
+    let encoded_tokens: Vec<_> = req
+        .headers()
+        .get_all("Authorization")
         .filter_map(|header_value| header_value.to_str().ok())
         .filter_map(|string_value| {
             let mut split = string_value.split_whitespace();
-            if let Some(auth_type) = split.next() {
-                if auth_type == "Bearer" {
-                    return split.next();
-                }
+            if let Some(auth_type) = split.next()
+                && auth_type == "Bearer"
+            {
+                return split.next();
             }
             None
         })
@@ -68,10 +72,10 @@ pub fn from_request<T: Sized + FromEncoded>(req: &HttpRequest) -> Result<T, Erro
             if let ExpiredSignature = error.kind() {
                 Err(ErrorUnauthorized("Token Expired"))
             } else {
-                warn!("Error decoding auth token: {}", error);
+                warn!("Error decoding auth token: {error}");
                 Err(ErrorUnauthorized("Invalid Token"))
             }
-        },
-        Ok(access_token) => Ok(access_token)
+        }
+        Ok(access_token) => Ok(access_token),
     }
 }

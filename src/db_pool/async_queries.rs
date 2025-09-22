@@ -24,7 +24,7 @@ where
 {
     web::block(move || {
         let mut connection = db_pool.get()?;
-        query_func(&mut connection).map_err(From::from)
+        query_func(&mut connection)
     })
     .await
     .map_err(From::from)
@@ -46,7 +46,7 @@ where
 {
     web::block(move || {
         let mut connection = db_pool.get()?;
-        connection.transaction(|connection| query_func(connection).map_err(From::from))
+        connection.transaction(|connection| query_func(connection))
     })
     .await
     .map_err(From::from)

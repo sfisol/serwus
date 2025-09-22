@@ -7,15 +7,15 @@ use std::sync::{Arc, RwLock, Weak};
 use std::task::{Context, Poll};
 
 use actix_service::{Service, Transform};
-use futures::future::{ok as fut_ok, Future, FutureExt, Ready, TryFutureExt};
+use futures::future::{Future, FutureExt, Ready, TryFutureExt, ok as fut_ok};
 use log::{debug, warn};
 
 use actix_web::body::MessageBody;
 use actix_web::error::Error;
 use actix_web::http::StatusCode;
 use actix_web::{
-    dev::{ServiceRequest, ServiceResponse},
     HttpResponse,
+    dev::{ServiceRequest, ServiceResponse},
 };
 
 #[cfg(not(feature = "swagger"))]
@@ -126,12 +126,11 @@ where
         // Count request start-of-handling
         let stats_arc_for_request = req.app_data::<web::Data<BaseStats>>();
 
-        if count_it {
-            if let Some(stats_arc) = stats_arc_for_request {
-                if let Ok(mut stats) = stats_arc.0.write() {
-                    stats.request_started += 1;
-                }
-            }
+        if count_it
+            && let Some(stats_arc) = stats_arc_for_request
+            && let Ok(mut stats) = stats_arc.0.write()
+        {
+            stats.request_started += 1;
         }
 
         // Get stats reference for later to count stop-of-handling
@@ -145,10 +144,10 @@ where
 
             let status_code = match &res {
                 Ok(res) => {
-                    if let Some(error) = res.response().error() {
-                        if res.response().head().status != StatusCode::INTERNAL_SERVER_ERROR {
-                            debug!("Error in response: {:?}", error);
-                        }
+                    if let Some(error) = res.response().error()
+                        && res.response().head().status != StatusCode::INTERNAL_SERVER_ERROR
+                    {
+                        debug!("Error in response: {error:?}");
                     }
                     res.status()
                 }
@@ -158,15 +157,14 @@ where
             if count_it {
                 // Try to acquire strong Arc to stats again
                 if let Some(stats_arc) = stats_arc_for_response.and_then(|wbs| Weak::upgrade(&wbs))
+                    && let Ok(mut stats) = stats_arc.write()
                 {
-                    if let Ok(mut stats) = stats_arc.write() {
-                        stats.request_finished += 1;
-                        let left = stats.request_started - stats.request_finished;
-                        if left > 1 {
-                            warn!("Number of unfinished requests: {}", left);
-                        }
-                        *stats.status_codes.entry(status_code.as_u16()).or_insert(0) += 1;
+                    stats.request_finished += 1;
+                    let left = stats.request_started - stats.request_finished;
+                    if left > 1 {
+                        warn!("Number of unfinished requests: {left}");
                     }
+                    *stats.status_codes.entry(status_code.as_u16()).or_insert(0) += 1;
                 }
             }
 

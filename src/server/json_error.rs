@@ -130,7 +130,7 @@ impl ErrorBuilder {
     }
 
     pub fn debug(mut self, debug: impl Debug) -> Self {
-        self.inner.debug = Some(format!("{:?}", debug));
+        self.inner.debug = Some(format!("{debug:?}"));
         self
     }
 
@@ -138,10 +138,9 @@ impl ErrorBuilder {
         let data = serde_json::to_value(&data)
             .or_else(|err| {
                 let err_str = err.to_string();
-                log::error!("Error serializing error: {}", err_str);
+                log::error!("Error serializing error: {err_str}");
                 Ok::<_, ()>(serde_json::Value::String(format!(
-                    "Error serializing error: {}",
-                    err_str
+                    "Error serializing error: {err_str}"
                 )))
             })
             .ok();
