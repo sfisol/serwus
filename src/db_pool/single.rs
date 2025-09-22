@@ -37,7 +37,7 @@ pub fn init_pool(size: usize) -> Result<Pool, r2d2::Error> {
         .max_size(max_size as u32)
         .build(manager)
         .map_err(|err| {
-            error!("Can't connect to database: {}", err);
+            error!("Can't connect to database: {err}");
             err
         })
 }

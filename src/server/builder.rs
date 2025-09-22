@@ -111,7 +111,7 @@ impl<'a> Serwus<'a> {
         };
 
         let numthreads = threads::num_threads();
-        log::info!("Configuring for {} threads", numthreads);
+        log::info!("Configuring for {numthreads} threads");
 
         let app_data = web::Data::new(prepare_app_data());
         let stats = web::Data::new(BaseStats::default());

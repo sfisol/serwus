@@ -10,7 +10,7 @@ repository = "https://github.com/sfisol/serwus"
 documentation = "https://docs.rs/serwus/"
 categories = ["network-programming", "asynchronous", "web-programming::http-server", "web-programming::websocket"]
 license = "MIT OR Apache-2.0"
-edition = "2021"
+edition = "2024"
 
 [workspace]
 members = [".", "serwus-derive"]
@@ -55,7 +55,7 @@ paperclip = { version = "0.9", features = ["actix4", "rust_decimal", "chrono", "
 quick-error = { version = "2", optional = true }
 r2d2 = { version = "0.8", optional = true }
 rand = { version = "0.9", optional = true }
-rust-argon2 = { version = "2", optional = true }
+rust-argon2 = { version = "3", optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 validator = "0.20"
@@ -69,6 +69,6 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "tracing-log"]
 tracing-bunyan-formatter = { version = "0.3", optional = true }
 
 metrics = { version = "0.24", optional = true }
-metrics-exporter-prometheus = { version = "0.16", optional = true }
+metrics-exporter-prometheus = { version = "0.17", optional = true }
 lazy_static = { version = "1.5", optional = true }
 futures-util = { version = "0.3", optional = true }
