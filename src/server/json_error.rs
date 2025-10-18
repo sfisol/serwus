@@ -1,9 +1,9 @@
 use actix_http::body::MessageBody;
 use actix_web::{
-    dev::ServiceResponse,
-    http::{header, StatusCode},
-    middleware::ErrorHandlerResponse,
     HttpResponse, ResponseError, Result,
+    dev::ServiceResponse,
+    http::{StatusCode, header},
+    middleware::ErrorHandlerResponse,
 };
 use serde::Serialize;
 use std::fmt::{Debug, Display};
@@ -88,6 +88,21 @@ impl ErrorBuilder {
         }
     }
 
+    pub fn not_found() -> Self {
+        Self::not_found_msg(StatusCode::NOT_FOUND.to_string())
+    }
+
+    pub fn not_found_msg(message: impl Display) -> Self {
+        let status_code = StatusCode::NOT_FOUND;
+        let message = message.to_string();
+        Self::new(status_code, JsonErrorType::NotFound, message.clone()).message(message)
+    }
+
+    pub fn bad_request(reason: impl Display) -> Self {
+        let status_code = StatusCode::BAD_REQUEST;
+        Self::new(status_code, JsonErrorType::BadRequest, reason)
+    }
+
     pub fn internal(reason: impl Display) -> Self {
         let status_code = StatusCode::INTERNAL_SERVER_ERROR;
         Self::new(status_code, JsonErrorType::Internal, reason)
@@ -98,9 +113,24 @@ impl ErrorBuilder {
         Self::new(status_code, JsonErrorType::Database, reason)
     }
 
+    pub fn unauthorized(reason: impl Display) -> Self {
+        let status_code = StatusCode::UNAUTHORIZED;
+        Self::new(status_code, JsonErrorType::Other, reason)
+    }
+
+    pub fn forbidden(reason: impl Display) -> Self {
+        let status_code = StatusCode::FORBIDDEN;
+        Self::new(status_code, JsonErrorType::Other, reason)
+    }
+
     pub fn validation_fail(reason: impl Display) -> Self {
         let status_code = StatusCode::UNPROCESSABLE_ENTITY;
         Self::new(status_code, JsonErrorType::ValidationFail, reason)
+    }
+
+    pub fn validation_fail_msg(message: impl Display) -> Self {
+        let message = message.to_string();
+        Self::validation_fail(message.clone()).message(message)
     }
 
     pub fn custom(sub_type: impl Display, reason: impl Display) -> Self {

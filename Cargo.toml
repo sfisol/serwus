@@ -16,7 +16,7 @@ edition = "2024"
 members = [".", "serwus-derive"]
 
 [features]
-auth = ["jsonwebtoken", "quick-error", "rand", "rust-argon2"]
+auth = ["jsonwebtoken", "thiserror", "rand", "rust-argon2"]
 actix_validation = []
 rs256_jwks = ["alcoholic_jwt", "awc"]
 default = ["pgsql", "auth", "tracing"]
@@ -52,7 +52,7 @@ log = "0.4"
 serwus-derive = { path = "serwus-derive", version = "0.2" }
 num_cpus = "1"
 paperclip = { version = "0.9", features = ["actix4", "rust_decimal", "chrono", "swagger-ui" ], optional = true }
-quick-error = { version = "2", optional = true }
+thiserror = { version = "2", optional = true }
 r2d2 = { version = "0.8", optional = true }
 rand = { version = "0.9", optional = true }
 rust-argon2 = { version = "3", optional = true }
