@@ -1,5 +1,6 @@
-use quick_error::quick_error;
-use rand::{rng, Rng};
+use derive_more::Display;
+use rand::{Rng, rng};
+use thiserror::Error;
 
 /// Hash password using argon2
 pub fn hash_password(password: String, config: &argon2::Config<'_>) -> Result<String, HashError> {
@@ -13,9 +14,7 @@ pub fn hash_password(password: String, config: &argon2::Config<'_>) -> Result<St
     Ok(hashed_password)
 }
 
-quick_error! {
-    #[derive(Debug)]
-    pub enum HashError {
-        Argon(err: argon2::Error) { from() }
-    }
+#[derive(Debug, Display, Error)]
+pub enum HashError {
+    Argon(#[from] argon2::Error),
 }
