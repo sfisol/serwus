@@ -1,10 +1,10 @@
 [package]
 name = "serwus-derive"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
 description = "Helpers for building actix-web/diesel based services - macros"
 license = "MIT OR Apache-2.0"
-edition = "2021"
+edition = "2024"
 
 [lib]
 proc-macro = true

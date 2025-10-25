@@ -1,6 +1,16 @@
 <!-- markdownlint-configure-file { "no-duplicate-heading": { "siblings_only": true } } -->
 
 <!-- markdownlint-disable-next-line first-line-h1 -->
+## 0.2.2 - 2025-10-25
+
+### Added
+
+* More `ErrorBuilder` constructors: `not_found`, `bad_request`, `unauthorized`, `forbidden`
+
+### Changed
+
+* Replaced `quick-error` with `thiserror`
+
 ## 0.2.1 - 2025-02-04
 
 ### Changed
