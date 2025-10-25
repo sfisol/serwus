@@ -1,6 +1,6 @@
 [package]
 name = "serwus"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
 description = "Helpers for building actix-web/diesel based services"
 readme = "README.md"
