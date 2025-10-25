@@ -13,7 +13,7 @@ pub fn empty_stats_macro_derive(input: TokenStream) -> TokenStream {
 
 fn impl_empty_stats_macro(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let generated = quote! {
         impl ::serwus::server::stats::StatsPresenter<()> for #name {
             fn is_ready(&self) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output=Result<bool, ::actix_web::Error>>>> {
                 Box::pin(::std::future::ready(Ok(true)))
@@ -23,7 +23,7 @@ fn impl_empty_stats_macro(ast: &syn::DeriveInput) -> TokenStream {
             }
         }
     };
-    gen.into()
+    generated.into()
 }
 
 #[proc_macro_derive(Canceled)]
@@ -34,14 +34,14 @@ pub fn canceled_macro_derive(input: TokenStream) -> TokenStream {
 
 fn impl_canceled_macro(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let generated = quote! {
         impl ::std::convert::From<::actix_web::error::BlockingError> for #name {
             fn from(b_err: ::actix_web::error::BlockingError) -> Self {
                 Self::Canceled
             }
         }
     };
-    gen.into()
+    generated.into()
 }
 
 /// Implements `ResponseError` for struct if it implements Into<ErrorBuilder>
@@ -53,7 +53,7 @@ pub fn response_from_builder_derive(input: TokenStream) -> TokenStream {
 
 fn impl_response_from_builder(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let gen = quote! {
+    let generated = quote! {
         impl ::actix_web::ResponseError for #name {
             fn error_response(&self) -> ::actix_web::HttpResponse {
                 ::serwus::server::json_error::ErrorBuilder::from(self)
@@ -62,5 +62,5 @@ fn impl_response_from_builder(ast: &syn::DeriveInput) -> TokenStream {
             }
         }
     };
-    gen.into()
+    generated.into()
 }
