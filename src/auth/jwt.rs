@@ -29,7 +29,7 @@ pub trait FromEncoded: Sized + KnowSecret {
     fn from_encoded(encoded_token: &str) -> Result<Self, JwtError>;
 }
 
-impl<T: DeserializeOwned + KnowSecret> FromEncoded for T {
+impl<T: Clone + DeserializeOwned + KnowSecret> FromEncoded for T {
     fn from_encoded(encoded_token: &str) -> Result<T, JwtError> {
         let header: &Header = &Header::default();
         let validation: &Validation = &Validation::new(header.alg);
