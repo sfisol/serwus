@@ -1,6 +1,6 @@
-use log::{info, Record, Level, Metadata, LevelFilter, SetLoggerError};
 use chrono::*;
 use colored::*;
+use log::{Level, LevelFilter, Metadata, Record, SetLoggerError, info};
 
 pub struct ConsoleLogger;
 
@@ -22,7 +22,9 @@ impl log::Log for ConsoleLogger {
 
         let date = format!(
             "{}-{:02}-{:02} {:02}:{:02}:{:02}",
-            year, now.month(), now.day(),
+            year,
+            now.month(),
+            now.day(),
             hour,
             now.minute(),
             now.second(),
@@ -44,30 +46,30 @@ impl log::Log for ConsoleLogger {
             let lib_name = env!("CARGO_PKG_NAME");
 
             if [Level::Error, Level::Warn].contains(&record.level()) && env != "dev" {
-                println!("[{} {}] {}:{} - {}",
+                println!(
+                    "[{} {}] {}:{} - {}",
                     level,
                     record.module_path().unwrap_or(""),
                     record.file().unwrap_or(""),
                     record.line().unwrap_or(0),
                     format!("{}", record.args()).green(),
                 )
-            } else if
-                env != "dev" &&
-                record.level() != Level::Debug
-            {
-                println!("[{} {}] - {}",
+            } else if env != "dev" && record.level() != Level::Debug {
+                println!(
+                    "[{} {}] - {}",
                     level,
                     record.module_path().unwrap_or(""),
                     record.args(),
                 )
-            } else if
-                record.module_path().unwrap_or( "").contains(&proj_prefix) ||
-                record.module_path().unwrap_or("").contains(lib_name) ||
-                record.level() != Level::Debug
+            } else if record.module_path().unwrap_or("").contains(&proj_prefix)
+                || record.module_path().unwrap_or("").contains(lib_name)
+                || record.level() != Level::Debug
             {
-                println!("{}{} {} {}{} {}",
+                println!(
+                    "{}{} {} {}{} {}",
                     "[".to_string().white(),
-                    date, level,
+                    date,
+                    level,
                     record.module_path().unwrap_or(""),
                     "]".to_string().white(),
                     format!("{}", record.args()).white(),

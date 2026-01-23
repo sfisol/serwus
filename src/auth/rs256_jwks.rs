@@ -1,7 +1,7 @@
 //! Allows to validate access token against 3rd party authority
 
+use alcoholic_jwt::{JWKS, ValidJWT, Validation, token_kid, validate};
 use awc::Client;
-use alcoholic_jwt::{token_kid, validate, Validation, JWKS, ValidJWT};
 
 #[derive(Debug)]
 pub enum ValidateError {
@@ -17,7 +17,11 @@ pub enum CredentialsError {
     IdToken(ValidateError),
 }
 
-pub async fn validate_credentials(authority: &str, access_token: String, id_token: String) -> Result<ValidJWT, CredentialsError> {
+pub async fn validate_credentials(
+    authority: &str,
+    access_token: String,
+    id_token: String,
+) -> Result<ValidJWT, CredentialsError> {
     let uri = format!("{}/{}", authority, ".well-known/jwks.json");
     let jwks = fetch_jwks(&uri)
         .await
@@ -33,18 +37,25 @@ pub async fn validate_credentials(authority: &str, access_token: String, id_toke
 }
 
 async fn fetch_jwks(uri: &str) -> Result<JWKS, String> {
-    let mut res = Client::default().get(uri).send()
+    let mut res = Client::default()
+        .get(uri)
+        .send()
         .await
         .map_err(|e| e.to_string())?;
 
-    let val = res.json::<JWKS>()
-        .await
-        .map_err(|e| e.to_string())?;
+    let val = res.json::<JWKS>().await.map_err(|e| e.to_string())?;
     Ok(val)
 }
 
-async fn validate_token(authority: &str, token: &str, jwks: &JWKS) -> Result<ValidJWT, ValidateError> {
-    let validations = vec![Validation::Issuer(authority.to_string()), Validation::SubjectPresent];
+async fn validate_token(
+    authority: &str,
+    token: &str,
+    jwks: &JWKS,
+) -> Result<ValidJWT, ValidateError> {
+    let validations = vec![
+        Validation::Issuer(authority.to_string()),
+        Validation::SubjectPresent,
+    ];
     let kid = match token_kid(token) {
         Ok(Some(kid)) => kid,
         Ok(None) => return Err(ValidateError::NoKidInToken),
@@ -56,8 +67,7 @@ async fn validate_token(authority: &str, token: &str, jwks: &JWKS) -> Result<Val
         None => return Err(ValidateError::NoKidInJwks),
     };
 
-    let res = validate(token, jwk, validations)
-        .map_err(ValidateError::Super)?;
+    let res = validate(token, jwk, validations).map_err(ValidateError::Super)?;
 
     // TODO: CHeck expiry time
 

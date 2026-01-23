@@ -1,4 +1,4 @@
-use rand::{distr::Alphanumeric, rng, Rng};
+use rand::{Rng, distr::Alphanumeric, rng};
 use std::iter;
 
 /// Generate random string of 64 chars for one-time token purposes.

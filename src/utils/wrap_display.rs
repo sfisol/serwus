@@ -7,5 +7,5 @@ macro_rules! wrap_display {
                 self.0.fmt(f)
             }
         }
-    }
+    };
 }

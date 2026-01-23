@@ -12,7 +12,7 @@ use weighted_rs::{RoundrobinWeight, Weight};
 
 use crate::threads::num_threads;
 
-use super::{database_url, Pool, DbConnection};
+use super::{DbConnection, Pool, database_url};
 
 /// Pool made of pools, one writable and others read-only with connections to slave replica(s).
 ///

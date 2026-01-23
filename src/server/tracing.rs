@@ -1,6 +1,6 @@
+use actix_web::Error;
 use actix_web::body::MessageBody;
 use actix_web::dev::{ServiceRequest, ServiceResponse};
-use actix_web::Error;
 use tracing::Span;
 use tracing_actix_web::{DefaultRootSpanBuilder, Level, RootSpanBuilder};
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};

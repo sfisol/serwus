@@ -25,7 +25,13 @@ mod test {
 
     #[test]
     fn test_normalize() {
-        assert_eq!("Abc@example.com".to_string(), normalize("Abc@EXAMPLE.COM").unwrap());
-        assert_eq!("aBc@xYz@example.com".to_string(), normalize("aBc@xYz@Example.COM").unwrap());
+        assert_eq!(
+            "Abc@example.com".to_string(),
+            normalize("Abc@EXAMPLE.COM").unwrap()
+        );
+        assert_eq!(
+            "aBc@xYz@example.com".to_string(),
+            normalize("aBc@xYz@Example.COM").unwrap()
+        );
     }
 }
