@@ -1,43 +1,56 @@
 name: Build
 on: [push]
 
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_TERM_COLOR: always
+  RUSTC_WRAPPER: "sccache"
+  RUSTFLAGS: -D warnings
+  SCCACHE_GHA_ENABLED: "true"
+
 jobs:
-  nightly-clippy:
+  nightly:
     name: Nightly clippy
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
-          components: clippy
+          components: clippy, rustfmt
           override: true
-      - uses: actions-rs/clippy-check@v1
+      - name: Install sccache
+        uses: mozilla-actions/sccache-action@v0.0.6
+
+      # Formatting check
+      - name: Check formatting
+        run: cargo fmt -- --check
+
+      # Clippy checks
+      - name: Clippy all features
+        uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: -p serwus --all-features -- -Dwarnings
           name: Serwus Clippy Output all-features
-      - uses: actions-rs/clippy-check@v1
+      - name: Clippy no features
+        uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: -p serwus --no-default-features -- -Dwarnings
           name: Serwus Clippy Output no-features
 
-  nightly-tests:
-    name: Nightly tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          override: true
-      - uses: actions-rs/cargo@v1
+      # Tests
+      - name: Tests all features
+        uses: actions-rs/cargo@v1
         with:
           command: test
           args: -p serwus --all-features
-      - uses: actions-rs/cargo@v1
+      - name: Tests no features
+        uses: actions-rs/cargo@v1
         with:
           command: test
           args: -p serwus --no-default-features
@@ -46,38 +59,40 @@ jobs:
     name: Stable clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           target: wasm32-unknown-unknown
           components: clippy
           override: true
-      - uses: actions-rs/clippy-check@v1
+      - name: Install sccache
+        uses: mozilla-actions/sccache-action@v0.0.6
+
+      # Clippy checks
+      - name: Clippy all features
+        uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-features
           name: Clippy Output all-features
-      - uses: actions-rs/clippy-check@v1
+      - name: Clippy no features
+        uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --no-default-features
           name: Clippy Output no-features
 
-  stable-tests:
-    name: Stable tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-      - uses: actions-rs/cargo@v1
+      # Tests
+      - name: Tests all features
+        uses: actions-rs/cargo@v1
         with:
           command: test
           args: --all-features
-      - uses: actions-rs/cargo@v1
+      - name: Tests no features
+        uses: actions-rs/cargo@v1
         with:
           command: test
           args: --no-default-features

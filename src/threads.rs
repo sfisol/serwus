@@ -7,9 +7,5 @@ pub fn num_threads() -> usize {
         num_cpus::get()
     };
 
-    if num_cpus < 2 {
-        2
-    } else {
-        num_cpus
-    }
+    if num_cpus < 2 { 2 } else { num_cpus }
 }

@@ -1,11 +1,7 @@
-use diesel::{
-    prelude::*, query_builder::*, query_dsl::methods::LoadQuery, sql_types::BigInt,
-};
+use diesel::{prelude::*, query_builder::*, query_dsl::methods::LoadQuery, sql_types::BigInt};
 
 use crate::containers::ListResponse;
 use crate::db_pool::{Db, DbConnection};
-
-
 
 pub trait Paginate: Sized {
     fn paginate(self, page: i64) -> Paginated<Self>;

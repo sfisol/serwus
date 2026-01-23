@@ -120,7 +120,7 @@ where
         + Send
         + 'static,
 {
-    use diesel::{sql_query, RunQueryDsl};
+    use diesel::{RunQueryDsl, sql_query};
 
     web::block(move || {
         let mut connection = db_pool.read()?;

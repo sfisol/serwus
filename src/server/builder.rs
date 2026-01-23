@@ -1,5 +1,5 @@
 use actix_cors::Cors;
-use actix_web::{middleware::ErrorHandlers, App, HttpServer};
+use actix_web::{App, HttpServer, middleware::ErrorHandlers};
 use dotenv::dotenv;
 
 #[cfg(not(feature = "swagger"))]
@@ -7,7 +7,7 @@ use actix_web::web;
 
 #[cfg(feature = "swagger")]
 use paperclip::{
-    actix::{web, OpenApiExt},
+    actix::{OpenApiExt, web},
     v2::models::DefaultApiRaw,
 };
 
@@ -16,8 +16,8 @@ use crate::server::json_error::default_error_handler;
 use super::threads;
 
 use super::stats::{
-    default_healthcheck_handler, default_readiness_handler, default_stats_handler,
-    AppDataWrapper, BaseStats, StatsPresenter, StatsWrapper,
+    AppDataWrapper, BaseStats, StatsPresenter, StatsWrapper, default_healthcheck_handler,
+    default_readiness_handler, default_stats_handler,
 };
 
 pub struct Serwus<'a> {
@@ -178,9 +178,9 @@ impl<'a> Serwus<'a> {
                 });
 
             #[cfg(feature = "tracing")]
-            let app = app.wrap(
-                tracing_actix_web::TracingLogger::<super::tracing::TracingSpanBuilder>::new()
-            );
+            let app = app.wrap(tracing_actix_web::TracingLogger::<
+                super::tracing::TracingSpanBuilder,
+            >::new());
 
             let app = app.wrap(actix_web::middleware::Logger::default());
 

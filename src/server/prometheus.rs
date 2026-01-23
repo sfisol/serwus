@@ -1,32 +1,36 @@
 use actix_web::body::BoxBody;
-use actix_web::{error::Error, HttpResponse, web};
 use actix_web::http::StatusCode;
-use futures::future::{ok as fut_ok, TryFutureExt};
+use actix_web::{HttpResponse, error::Error, web};
+use futures::future::{TryFutureExt, ok as fut_ok};
 use serde::Serialize;
 
-use super::stats::{StatsPresenter, AppDataWrapper, StatsOutput, BaseStatsInner, BaseStats};
+use super::stats::{AppDataWrapper, BaseStats, BaseStatsInner, StatsOutput, StatsPresenter};
 
 // Prometheus stats handler
-pub async fn prometheus_stats_handler<S, D>(base_data: web::Data<BaseStats>, service_data: web::Data<S>) -> Result<HttpResponse<BoxBody>, Error>
+pub async fn prometheus_stats_handler<S, D>(
+    base_data: web::Data<BaseStats>,
+    service_data: web::Data<S>,
+) -> Result<HttpResponse<BoxBody>, Error>
 where
     D: AppDataWrapper,
     S: StatsPresenter<D>,
 {
-    let fut_res = service_data.get_stats()
-        .and_then(move |service_stats| {
-            if let Ok(base_stats) = base_data.0.read() {
+    let fut_res = service_data.get_stats().and_then(move |service_stats| {
+        if let Ok(base_stats) = base_data.0.read() {
+            #[allow(clippy::unit_arg)]
+            let output = StatsOutput {
+                base: base_stats.clone(),
+                service: Some(service_stats),
+            };
 
-                #[allow(clippy::unit_arg)]
-                let output = StatsOutput {
-                    base: base_stats.clone(),
-                    service: Some(service_stats),
-                };
-
-                fut_ok(HttpResponse::build(StatusCode::OK).body(output.as_prometheus().join("\n")))
-            } else {
-                fut_ok(HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR).body("Can't acquire stats (1)".to_string()))
-            }
-        });
+            fut_ok(HttpResponse::build(StatusCode::OK).body(output.as_prometheus().join("\n")))
+        } else {
+            fut_ok(
+                HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR)
+                    .body("Can't acquire stats (1)".to_string()),
+            )
+        }
+    });
 
     fut_res.await
 }
@@ -60,7 +64,7 @@ impl AsPrometheus for BaseStats {
 
 impl<D> AsPrometheus for StatsOutput<D>
 where
-    D: AsPrometheus + Serialize
+    D: AsPrometheus + Serialize,
 {
     fn as_prometheus(&self) -> Vec<String> {
         let mut out = Vec::new();
@@ -81,7 +85,7 @@ where
 
 impl<T> AsPrometheus for Option<T>
 where
-    T: AsPrometheus
+    T: AsPrometheus,
 {
     fn as_prometheus(&self) -> Vec<String> {
         if let Some(t) = self {

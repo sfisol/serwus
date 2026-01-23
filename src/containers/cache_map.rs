@@ -1,10 +1,6 @@
 //! Simple key->value cache with defined time to live
 
-use std::{
-    collections::HashMap,
-    hash::Hash,
-    time::Instant,
-};
+use std::{collections::HashMap, hash::Hash, time::Instant};
 
 // Maybe TODO: Cache ready to use as shared in tokio loop
 // pub(super) type SharedCache<V> = Rc<RwLock<CacheValue<V>>>;
@@ -26,10 +22,10 @@ pub struct CacheValue<T> {
 
 pub struct Entry<'a, K, V> {
     pub value: &'a CacheValue<V>,
-    container: &'a CacheMap<K, V>
+    container: &'a CacheMap<K, V>,
 }
 
-impl<K: Hash + Eq, V> CacheMap<K,V> {
+impl<K: Hash + Eq, V> CacheMap<K, V> {
     pub fn new(ttl: u64) -> Self {
         Self {
             values: Default::default(),
@@ -38,23 +34,18 @@ impl<K: Hash + Eq, V> CacheMap<K,V> {
     }
 
     pub fn should_retain(&self, key: &K) -> Option<bool> {
-        self.values.get(key)
-            .map(|val| val.age() < self.ttl)
+        self.values.get(key).map(|val| val.age() < self.ttl)
     }
 
     pub fn get(&self, key: &K) -> Option<&V> {
-        self.values.get(key)
-            .and_then(|val| val.value.as_ref())
+        self.values.get(key).and_then(|val| val.value.as_ref())
     }
 
     pub fn entry<'a>(&'a self, key: &'a K) -> Option<Entry<'a, K, V>> {
-        self.values.get(key)
-            .map(|value|
-                Entry {
-                    value,
-                    container: self,
-                }
-            )
+        self.values.get(key).map(|value| Entry {
+            value,
+            container: self,
+        })
     }
 
     pub fn insert(&mut self, key: K, value: V) -> Option<CacheValue<V>> {

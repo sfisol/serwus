@@ -1,9 +1,9 @@
 #[cfg(feature = "diesel")]
 use diesel::{
-    sql_types::SmallInt,
     backend::Backend,
     deserialize::{self, FromSql},
-    serialize::{self, ToSql, Output},
+    serialize::{self, Output, ToSql},
+    sql_types::SmallInt,
 };
 use serde::{Deserialize, Serialize};
 

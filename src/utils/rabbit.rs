@@ -1,18 +1,22 @@
-use actix::{
-    Actor, Addr, Handler, Message,
-    dev::ToEnvelope,
-};
+use actix::{Actor, Addr, Handler, Message, dev::ToEnvelope};
 use actix_web::rt::task::spawn_blocking;
-use amiquip::{Channel, ConfirmSmoother, ConsumerMessage, ConsumerOptions, Exchange, QueueDeclareOptions, Publish};
+use amiquip::{
+    Channel, ConfirmSmoother, ConsumerMessage, ConsumerOptions, Exchange, Publish,
+    QueueDeclareOptions,
+};
 use log::{error, info};
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 
-pub fn spawn_rabbit_consumer<T, A>(act: Addr<A>, channel: Channel, consume_queue: &'static str, publish_queue: Option<&'static str>)
-where
+pub fn spawn_rabbit_consumer<T, A>(
+    act: Addr<A>,
+    channel: Channel,
+    consume_queue: &'static str,
+    publish_queue: Option<&'static str>,
+) where
     T: DeserializeOwned + Message + Send,
     A: Handler<T>,
     <T as Message>::Result: Send,
-    <A as Actor>::Context: ToEnvelope<A, T>
+    <A as Actor>::Context: ToEnvelope<A, T>,
 {
     info!("Rabbit consumer starting...");
 
@@ -42,11 +46,11 @@ where
                 ConsumerMessage::Delivery(delivery) => {
                     let body = &delivery.body[..];
                     let msg: T = match serde_json::from_slice(body) {
-                            Ok(msg) => msg,
+                        Ok(msg) => msg,
                         Err(err) => {
                             error!("Rabbit deserialize error: {}", err);
-                            continue
-                        },
+                            continue;
+                        }
                     };
 
                     act.do_send(msg);
@@ -72,15 +76,22 @@ pub enum SendError {
     Confirm(crossbeam_channel::RecvError),
 }
 
-pub fn send_and_wait_for_ack(msg: impl Serialize, channel: &Channel, routing_key: &'static str) -> Result<(), SendError> {
+pub fn send_and_wait_for_ack(
+    msg: impl Serialize,
+    channel: &Channel,
+    routing_key: &'static str,
+) -> Result<(), SendError> {
     let exchange = Exchange::direct(channel);
 
     // register a pub confirm listener before putting the channel into confirm mode
     let confirm_listener = match channel.listen_for_publisher_confirms() {
         Ok(c_l) => c_l,
         Err(err) => {
-            error!("Error while registering confirm listener in rabbitmq: {}", err);
-            return Err(SendError::Channel(err))
+            error!(
+                "Error while registering confirm listener in rabbitmq: {}",
+                err
+            );
+            return Err(SendError::Channel(err));
         }
     };
 
@@ -90,21 +101,23 @@ pub fn send_and_wait_for_ack(msg: impl Serialize, channel: &Channel, routing_key
     // create a confirm smoother so we can process perfectly sequential confirmations
     let mut confirm_smoother = ConfirmSmoother::new();
 
-
     // Serialize struct
     let data = match serde_json::to_string(&msg) {
         Ok(data) => data,
-        Err(err) => return Err(SendError::Serde(err))
+        Err(err) => return Err(SendError::Serde(err)),
     };
 
     // Publish message to the queue.
     match exchange.publish(Publish::new(data.as_bytes(), routing_key)) {
         Ok(_) => {
             info!("Exchange {}: Message published.", routing_key);
-        },
+        }
         Err(err) => {
-            error!("Exchange {}: Error while publishing message to rabbitmq: {}", routing_key, err);
-            return Err(SendError::Publish(err))
+            error!(
+                "Exchange {}: Error while publishing message to rabbitmq: {}",
+                routing_key, err
+            );
+            return Err(SendError::Publish(err));
         }
     };
 
@@ -116,10 +129,13 @@ pub fn send_and_wait_for_ack(msg: impl Serialize, channel: &Channel, routing_key
             Ok(confirm) => {
                 info!("Confirmed!");
                 confirm
-            },
+            }
             Err(err) => {
-                error!("Exchange {}: Error while confirming recv: {:?}", routing_key, err);
-                return Err(SendError::Confirm(err))
+                error!(
+                    "Exchange {}: Error while confirming recv: {:?}",
+                    routing_key, err
+                );
+                return Err(SendError::Confirm(err));
             }
         };
         println!("got raw confirm {confirm:?} from server");
@@ -127,7 +143,7 @@ pub fn send_and_wait_for_ack(msg: impl Serialize, channel: &Channel, routing_key
             info!("Exchange {}: Message confirmed: {:?}", routing_key, confirm);
             confirmed += 1;
         }
-    };
+    }
 
     Ok(())
 }

@@ -1,6 +1,6 @@
 use diesel::r2d2::ConnectionManager;
-use std::env;
 use log::{error, info};
+use std::env;
 
 use crate::threads::num_threads;
 

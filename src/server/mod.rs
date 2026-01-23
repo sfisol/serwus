@@ -3,10 +3,10 @@
 pub mod app_data;
 mod builder;
 pub mod json_error;
-#[cfg(feature = "prometheus")]
-pub mod prometheus;
 #[cfg(feature = "metrics")]
 pub mod metrics;
+#[cfg(feature = "prometheus")]
+pub mod prometheus;
 pub mod stats;
 #[cfg(feature = "tracing")]
 pub mod tracing;
@@ -14,17 +14,13 @@ pub mod tracing;
 use actix_cors::Cors;
 use actix_http::Request;
 use actix_service::Service;
-use actix_web::{
-    App, http, test, Error,
-    body::BoxBody,
-    dev::ServiceResponse,
-};
+use actix_web::{App, Error, body::BoxBody, dev::ServiceResponse, http, test};
 
 #[cfg(not(feature = "swagger"))]
 use actix_web::web;
 
 #[cfg(feature = "swagger")]
-use paperclip::actix::{web, OpenApiExt};
+use paperclip::actix::{OpenApiExt, web};
 
 use super::threads;
 
@@ -36,11 +32,18 @@ pub fn default_cors() -> Cors {
     Cors::default()
         .send_wildcard()
         .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"])
-        .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT, http::header::CONTENT_TYPE])
+        .allowed_headers(vec![
+            http::header::AUTHORIZATION,
+            http::header::ACCEPT,
+            http::header::CONTENT_TYPE,
+        ])
         .max_age(3600)
 }
 
-pub async fn test_init<T, F>(prepare_app_data: impl Fn() -> T, configure_app: F) -> impl Service<Request, Response = ServiceResponse<BoxBody>, Error = Error>
+pub async fn test_init<T, F>(
+    prepare_app_data: impl Fn() -> T,
+    configure_app: F,
+) -> impl Service<Request, Response = ServiceResponse<BoxBody>, Error = Error>
 where
     T: 'static,
     F: Fn(&mut web::ServiceConfig),
@@ -54,13 +57,12 @@ where
         #[cfg(feature = "swagger")]
         let app = app.wrap_api();
 
-        let app = app
-            .app_data(app_data)
-            .configure(configure_app);
+        let app = app.app_data(app_data).configure(configure_app);
 
         #[cfg(feature = "swagger")]
         let app = app.build();
 
         app
-    }).await
+    })
+    .await
 }

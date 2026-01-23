@@ -42,10 +42,12 @@ fn is_not_alphanumeric(character: char) -> bool {
     !character.is_alphanumeric()
 }
 
-fn last_char_lower_current_is_upper_or_new_word(new_word: bool, last_char: char, character: char) -> bool {
-    new_word ||
-        ((last_char.is_lowercase() && character.is_uppercase()) &&
-         (last_char != ' '))
+fn last_char_lower_current_is_upper_or_new_word(
+    new_word: bool,
+    last_char: char,
+    character: char,
+) -> bool {
+    new_word || ((last_char.is_lowercase() && character.is_uppercase()) && (last_char != ' '))
 }
 
 #[inline]

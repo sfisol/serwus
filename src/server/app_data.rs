@@ -31,9 +31,8 @@ pub fn default_app_data() -> DefaultAppData {
 
 #[cfg(all(not(feature = "pgsql"), not(feature = "mysql")))]
 pub fn default_app_data() -> DefaultAppData {
-    DefaultAppData { }
+    DefaultAppData {}
 }
-
 
 #[derive(Serialize)]
 pub struct DefaultServiceStats {
@@ -42,7 +41,7 @@ pub struct DefaultServiceStats {
 }
 
 impl StatsPresenter<DefaultServiceStats> for DefaultAppData {
-    fn is_ready(&self) -> Pin<Box<dyn Future<Output=Result<bool, Error>>>> {
+    fn is_ready(&self) -> Pin<Box<dyn Future<Output = Result<bool, Error>>>> {
         #[cfg(any(feature = "pgsql", feature = "mysql"))]
         let res = self.db_pool.get().is_ok();
 
@@ -52,16 +51,14 @@ impl StatsPresenter<DefaultServiceStats> for DefaultAppData {
         Box::pin(fut_ok(res))
     }
 
-    fn get_stats(&self) -> Pin<Box<dyn Future<Output=Result<DefaultServiceStats, Error>>>> {
+    fn get_stats(&self) -> Pin<Box<dyn Future<Output = Result<DefaultServiceStats, Error>>>> {
         #[cfg(any(feature = "pgsql", feature = "mysql"))]
         let db_connection = self.db_pool.get().is_ok();
 
-        let fut = fut_ok(
-            DefaultServiceStats {
-                #[cfg(any(feature = "pgsql", feature = "mysql"))]
-                db_connection,
-            }
-        );
+        let fut = fut_ok(DefaultServiceStats {
+            #[cfg(any(feature = "pgsql", feature = "mysql"))]
+            db_connection,
+        });
 
         Box::pin(fut)
     }
