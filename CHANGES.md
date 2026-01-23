@@ -1,11 +1,11 @@
 <!-- markdownlint-configure-file { "no-duplicate-heading": { "siblings_only": true } } -->
 
 <!-- markdownlint-disable-next-line first-line-h1 -->
-## 0.2.3 - Unreleased
+## 0.2.3 - 2026-01-23
 
 ### Changed
 
-* Updated dependencies (diesel 2.3)
+* Updated dependencies (diesel 2.3, jsonwebtoken to 10)
 * JsonError deserializable
 * Refactored pipeline
 
