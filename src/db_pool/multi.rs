@@ -1,13 +1,13 @@
 //! Pool made of pools, one writable and others read-only with connections to slave replica(s).
 
+use diesel::r2d2::ConnectionManager;
+use log::{error, info};
+use r2d2::{Error, PooledConnection};
+use serde::Serialize;
 use std::{
     env,
     sync::{Arc, Mutex},
 };
-
-use diesel::r2d2::ConnectionManager;
-use log::{error, info};
-use r2d2::{Error, PooledConnection};
 use weighted_rs::{RoundrobinWeight, Weight};
 
 use crate::threads::num_threads;
@@ -181,6 +181,39 @@ impl MultiPool {
             self.write()
         }
     }
+
+    pub fn state(&self) -> MultiPoolState {
+        let (rw_conns, rw_conns_idle) = self
+            .master
+            .as_ref()
+            .map(|pool| {
+                let state = pool.state();
+                (state.connections, state.idle_connections)
+            })
+            .unwrap_or_default();
+
+        let (ro_conns, ro_conns_idle) = self.mirrors.iter().fold((0, 0), |mut agg, pool| {
+            let state = pool.state();
+            agg.0 += state.connections;
+            agg.1 += state.idle_connections;
+            agg
+        });
+
+        MultiPoolState {
+            rw_conns,
+            rw_conns_idle,
+            ro_conns,
+            ro_conns_idle,
+        }
+    }
+}
+
+#[derive(Debug, Default, PartialEq, Serialize)]
+pub struct MultiPoolState {
+    pub rw_conns: u32,
+    pub rw_conns_idle: u32,
+    pub ro_conns: u32,
+    pub ro_conns_idle: u32,
 }
 
 fn database_mirrors_urls(env_name: &str) -> Vec<String> {
