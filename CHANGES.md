@@ -1,6 +1,12 @@
 <!-- markdownlint-configure-file { "no-duplicate-heading": { "siblings_only": true } } -->
 
 <!-- markdownlint-disable-next-line first-line-h1 -->
+## Unreleased
+
+### Added
+
+* `MultiPool::state()` which sums numbers from r2d2::Pool::state()
+
 ## 0.2.3 - 2026-01-23
 
 ### Changed
