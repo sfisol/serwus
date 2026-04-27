@@ -162,6 +162,11 @@ impl<'a> Serwus<'a> {
                     .with_swagger_ui_at(&swagger_mount)
             };
 
+            // If you added the "v3" feature, you can also include
+            // .with_json_spec_v3_at("/api/spec/v3")
+            #[cfg(feature = "openapi_v3")]
+            let app = app.with_json_spec_v3_at(&format!("{swagger_mount}_spec_v3"));
+
             let app = app.configure(configure_app.clone());
 
             let app = app
