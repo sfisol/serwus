@@ -5,7 +5,8 @@
 
 ### Added
 
-* `MultiPool::state()` which sums numbers from r2d2::Pool::state()
+* Granular `r2d2` configuration options to `MultiPoolBuilder`
+* `MultiPool::state()` which sums numbers from `r2d2::Pool::state()`
 
 ## 0.2.3 - 2026-01-23
 
