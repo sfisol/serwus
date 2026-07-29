@@ -8,6 +8,10 @@
 * Granular `r2d2` configuration options to `MultiPoolBuilder`
 * `MultiPool::state()` which sums numbers from `r2d2::Pool::state()`
 
+### Performance
+
+* Optimize logger by caching environment variables and ANSI configuration using LazyLock
+
 ## 0.2.3 - 2026-01-23
 
 ### Changed
