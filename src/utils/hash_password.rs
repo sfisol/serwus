@@ -1,5 +1,5 @@
 use derive_more::Display;
-use rand::{Rng, rng};
+use rand::{RngExt, rng};
 use thiserror::Error;
 
 /// Hash password using argon2
