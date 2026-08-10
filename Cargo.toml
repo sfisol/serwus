@@ -1,6 +1,6 @@
 [package]
 name = "serwus"
-version = "0.2.3"
+version = "0.2.4"
 authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
 description = "Helpers for building actix-web/diesel based services"
 readme = "README.md"
@@ -36,7 +36,7 @@ actix-cors = "0.7"
 actix-http = "3"
 actix-service = "2"
 actix-web = "4"
-actix-multipart = { version = "0.7", features = ["derive"], optional = true }
+actix-multipart = { version = "0.8", features = ["derive"], optional = true }
 amiquip = { version = "0.4", optional = true }
 awc = { version = "3", features = ["rustls"], optional = true }
 alcoholic_jwt = { version = "4091.0", optional = true }
@@ -55,11 +55,11 @@ num_cpus = "1"
 paperclip = { version = "0.9", features = ["actix4", "rust_decimal", "chrono", "swagger-ui" ], optional = true }
 thiserror = { version = "2", optional = true }
 r2d2 = { version = "0.8", optional = true }
-rand = { version = "0.9", optional = true }
+rand = { version = "0.10", optional = true }
 rust-argon2 = { version = "3", optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
-validator = "0.20"
+validator = "0.21"
 validator_derive = "0.20"
 weighted-rs = { version = "0.1", optional = true }
 colored = "3.1"
