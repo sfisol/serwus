@@ -1,6 +1,6 @@
 [package]
 name = "serwus"
-version = "0.2.4"
+version = "0.2.5"
 authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
 description = "Helpers for building actix-web/diesel based services"
 readme = "README.md"
@@ -18,27 +18,31 @@ members = [".", "serwus-derive"]
 [features]
 auth = ["jsonwebtoken", "thiserror", "rand", "rust-argon2"]
 actix_validation = []
-rs256_jwks = ["alcoholic_jwt", "awc"]
+rs256_jwks = ["alcoholic_jwt", "awc", "awc/rustls-0_23-webpki-roots"]
+# Same as `rs256_jwks`, but the JWKS client trusts the operating system certificate
+# store instead of the root set bundled by `webpki-roots`. Enable this one *instead of*
+# `rs256_jwks` when the authority is served with a certificate from a private CA.
+rs256_jwks_native_roots = ["alcoholic_jwt", "awc", "awc/rustls-0_23-native-roots"]
 default = ["pgsql", "auth", "tracing"]
 pgsql = ["diesel/postgres", "diesel-derive-newtype", "r2d2"]
 multidb = ["weighted-rs"]
 mysql = ["diesel/mysql", "diesel-derive-newtype", "r2d2"]
 openapi_v3 = ["paperclip/v3"]
 swagger = ["paperclip"]
-rabbit = ["amiquip", "crossbeam-channel"]
+rabbit = ["actix", "amiquip", "crossbeam-channel"]
 prometheus = []
 tracing = ["dep:tracing", "tracing-actix-web", "tracing-subscriber", "tracing-bunyan-formatter"]
 metrics = ["dep:metrics", "metrics-exporter-prometheus", "lazy_static", "futures-util"]
 
 [dependencies]
-actix = "0.13"
+actix = { version = "0.13", optional = true }
 actix-cors = "0.7"
 actix-http = "3"
 actix-service = "2"
 actix-web = "4"
 actix-multipart = { version = "0.8", features = ["derive"], optional = true }
 amiquip = { version = "0.4", optional = true }
-awc = { version = "3", features = ["rustls"], optional = true }
+awc = { version = "3", optional = true }
 alcoholic_jwt = { version = "4091.0", optional = true }
 bytes = "1"
 chrono = { version = "0.4", features = ["serde"] }
@@ -46,9 +50,9 @@ crossbeam-channel = { version = "0.5", optional = true }
 derive_more = { version = "2.1", features = [ "as_ref", "deref", "display", "into"] }
 diesel = { version = "2.3", features = ["chrono", "r2d2"], optional = true }
 diesel-derive-newtype = { version = "2.1", optional = true }
-dotenv = "0.15"
+dotenvy = "0.15"
 futures = "0.3"
-jsonwebtoken = { version = "10", features = ["rust_crypto"], optional = true }
+jsonwebtoken = { version = "11", features = ["rust_crypto"], optional = true }
 log = "0.4"
 serwus-derive = { path = "serwus-derive", version = "0.2" }
 num_cpus = "1"
@@ -60,7 +64,6 @@ rust-argon2 = { version = "3", optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 validator = "0.21"
-validator_derive = "0.20"
 weighted-rs = { version = "0.1", optional = true }
 colored = "3.1"
 
@@ -73,3 +76,6 @@ metrics = { version = "0.24", optional = true }
 metrics-exporter-prometheus = { version = "0.18", optional = true }
 lazy_static = { version = "1.5", optional = true }
 futures-util = { version = "0.3", optional = true }
+
+[dev-dependencies]
+validator_derive = "0.20"

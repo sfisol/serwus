@@ -1,7 +1,7 @@
 use rand::{RngExt, distr::Alphanumeric, rng};
 use std::iter;
 
-/// Generate random string of 64 chars for one-time token purposes.
+/// Generate a random string of 64 chars for one-time token purposes.
 pub fn generate_code() -> String {
     let mut rng = rng();
     iter::repeat(())

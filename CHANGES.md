@@ -1,6 +1,30 @@
 <!-- markdownlint-configure-file { "no-duplicate-heading": { "siblings_only": true } } -->
 
 <!-- markdownlint-disable-next-line first-line-h1 -->
+## 0.2.5 - 2026-09-21
+
+### Added
+
+* `rs256_jwks_native_roots` feature - same as `rs256_jwks`, but the JWKS client trusts
+  the operating system certificate store instead of the bundled `webpki-roots` set.
+
+### Changed
+
+* Updated dependencies (dotenv -> dotenvy, jsonwebtoken to 11)
+* `rs256_jwks`: `awc` upgraded from `rustls` 0.20 to `rustls` 0.23, now with the
+  `webpki-roots` trust anchors. The JWKS client no longer trusts the operating system
+  certificate store, so an authority served with a certificate from a private or
+  corporate CA will fail TLS validation with an `UnknownIssuer` error. If that affects
+  you, enable `rs256_jwks_native_roots` *instead of* `rs256_jwks`:
+
+  ```toml
+  serwus = { version = "0.2", features = ["rs256_jwks_native_roots"] }
+  ```
+
+  Enabling both keeps `webpki-roots`, because cargo features are additive and `awc`
+  checks `webpki-roots` first. Building now also requires a C toolchain, because
+  `rustls` 0.23 uses `aws-lc-rs` as its default crypto provider.
+
 ## 0.2.4 - 2026-08-10
 
 ### Added

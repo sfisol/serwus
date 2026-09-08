@@ -6,5 +6,5 @@ pub mod jwt;
 #[cfg(feature = "auth")]
 pub use crate::containers::role::*;
 
-#[cfg(feature = "rs256_jwks")]
+#[cfg(any(feature = "rs256_jwks", feature = "rs256_jwks_native_roots"))]
 pub mod rs256_jwks;
