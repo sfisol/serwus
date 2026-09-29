@@ -21,6 +21,7 @@ use super::stats::{
 };
 
 pub struct Serwus<'a> {
+    bind_address: &'a str,
     app_port: &'a str,
     run_env: &'a str,
     #[cfg(feature = "swagger")]
@@ -33,6 +34,7 @@ pub struct Serwus<'a> {
 impl Default for Serwus<'_> {
     fn default() -> Self {
         Serwus {
+            bind_address: "0.0.0.0",
             app_port: "8000",
             run_env: "dev",
             #[cfg(feature = "swagger")]
@@ -45,6 +47,11 @@ impl Default for Serwus<'_> {
 }
 
 impl<'a> Serwus<'a> {
+    pub fn set_bind_address(mut self, bind_address: &'a str) -> Self {
+        self.bind_address = bind_address;
+        self
+    }
+
     pub fn set_app_port(mut self, app_port: &'a str) -> Self {
         self.app_port = app_port;
         self
@@ -122,7 +129,8 @@ impl<'a> Serwus<'a> {
         #[cfg(feature = "swagger")]
         let swagger_mount = self.swagger_mount.to_string();
 
-        log::info!("Starting HTTP server on port {}", self.app_port);
+        let address = socket_address(self.bind_address, self.app_port);
+        log::info!("Starting HTTP server on {address}");
         #[allow(clippy::let_and_return)]
         HttpServer::new(move || {
             let app = App::new()
@@ -195,9 +203,52 @@ impl<'a> Serwus<'a> {
             app
         })
         .workers(numthreads)
-        .bind(format!("0.0.0.0:{}", self.app_port))
-        .expect("Can't bind")
+        .bind(&address)
+        .unwrap_or_else(|error| panic!("Can't bind {address}: {error}"))
         .run()
         .await
+    }
+}
+
+/// `address:port` for [`HttpServer::bind`], with an IPv6 address in brackets.
+fn socket_address(address: &str, port: &str) -> String {
+    if address.contains(':') && !address.starts_with('[') {
+        format!("[{address}]:{port}")
+    } else {
+        format!("{address}:{port}")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
+
+    use super::socket_address;
+
+    #[test]
+    fn ip_addresses_bind_as_written() {
+        let parsed = |address: &str| socket_address(address, "8080").parse::<SocketAddr>();
+
+        assert_eq!(
+            parsed("0.0.0.0"),
+            Ok(SocketAddr::from((Ipv4Addr::UNSPECIFIED, 8080)))
+        );
+        assert_eq!(
+            parsed("127.0.0.1"),
+            Ok(SocketAddr::from((Ipv4Addr::LOCALHOST, 8080)))
+        );
+        assert_eq!(
+            parsed("::1"),
+            Ok(SocketAddr::from((Ipv6Addr::LOCALHOST, 8080)))
+        );
+        assert_eq!(
+            parsed("[::1]"),
+            Ok(SocketAddr::from((Ipv6Addr::LOCALHOST, 8080)))
+        );
+    }
+
+    #[test]
+    fn host_name_stays_as_it_is() {
+        assert_eq!(socket_address("localhost", "8000"), "localhost:8000");
     }
 }

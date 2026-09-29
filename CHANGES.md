@@ -1,6 +1,12 @@
 <!-- markdownlint-configure-file { "no-duplicate-heading": { "siblings_only": true } } -->
 
 <!-- markdownlint-disable-next-line first-line-h1 -->
+## 0.2.6 - Unreleased
+
+### Added
+
+* `set_bind_address` to `Serwus` builder.
+
 ## 0.2.5 - 2026-09-21
 
 ### Added
