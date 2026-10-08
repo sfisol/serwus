@@ -1,0 +1,15 @@
+[package]
+name = "serwus-test"
+version = "0.2.5"
+authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
+description = "Helpers for end-to-end tests of serwus services - Postgres in a container and the service as a process"
+repository = "https://github.com/sfisol/serwus"
+license = "MIT OR Apache-2.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0"
+reqwest = { version = "0.13", default-features = false }
+testcontainers-modules = { version = "0.15", features = ["postgres", "watchdog"] }
+tokio = { version = "1", features = ["process", "rt", "sync", "time"] }
+tokio-postgres = "0.7"
