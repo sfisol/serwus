@@ -6,6 +6,7 @@
 ### Added
 
 * `set_bind_address` to `Serwus` builder.
+* `serwus-test` crate.
 
 ## 0.2.5 - 2026-09-21
 

@@ -11,7 +11,7 @@ license = "MIT OR Apache-2.0"
 edition = "2024"
 
 [workspace]
-members = [".", "serwus-derive"]
+members = [".", "serwus-derive", "serwus-test"]
 
 [features]
 auth = ["jsonwebtoken", "thiserror", "rand", "rust-argon2"]
