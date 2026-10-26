@@ -1,12 +1,12 @@
 [package]
 name = "serwus-derive"
-version = "0.2.5"
-authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
+version = { workspace = true }
+authors = { workspace = true }
 description = "Helpers for building actix-web/diesel based services - macros"
-repository = "https://github.com/sfisol/serwus"
+repository = { workspace = true }
 documentation = "https://docs.rs/serwus-derive/"
-license = "MIT OR Apache-2.0"
-edition = "2024"
+license = { workspace = true }
+edition = { workspace = true }
 
 [lib]
 proc-macro = true
