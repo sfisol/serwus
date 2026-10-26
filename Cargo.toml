@@ -1,17 +1,24 @@
 [package]
 name = "serwus"
-version = "0.2.5"
-authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
+version = { workspace = true }
+authors = { workspace = true }
 description = "Helpers for building actix-web/diesel based services"
 keywords = ["http", "web", "actix", "actix-web", "diesel"]
-repository = "https://github.com/sfisol/serwus"
+repository = { workspace = true }
 documentation = "https://docs.rs/serwus/"
 categories = ["network-programming", "asynchronous", "web-programming::http-server", "web-programming::websocket"]
-license = "MIT OR Apache-2.0"
-edition = "2024"
+license = { workspace = true }
+edition = { workspace = true }
 
 [workspace]
 members = [".", "serwus-derive", "serwus-test"]
+
+[workspace.package]
+version = "0.2.6"
+authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
+repository = "https://github.com/sfisol/serwus"
+license = "MIT OR Apache-2.0"
+edition = "2024"
 
 [features]
 auth = ["jsonwebtoken", "thiserror", "rand", "rust-argon2"]

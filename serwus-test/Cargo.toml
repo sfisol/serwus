@@ -1,11 +1,11 @@
 [package]
 name = "serwus-test"
-version = "0.2.5"
-authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
+version = { workspace = true }
+authors = { workspace = true }
 description = "Helpers for end-to-end tests of serwus services - Postgres in a container and the service as a process"
-repository = "https://github.com/sfisol/serwus"
-license = "MIT OR Apache-2.0"
-edition = "2024"
+repository = { workspace = true }
+license = { workspace = true }
+edition = { workspace = true }
 
 [dependencies]
 anyhow = "1.0"
