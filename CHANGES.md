@@ -1,6 +1,18 @@
 <!-- markdownlint-configure-file { "no-duplicate-heading": { "siblings_only": true } } -->
 
 <!-- markdownlint-disable-next-line first-line-h1 -->
+## Unreleased
+
+### Changed
+
+* **Breaking:** the `rabbit` feature uses [`lapin`](https://crates.io/crates/lapin) instead of
+  `amiquip`, which is no longer maintained and pinned `idna` 0.1.5 with a known vulnerability
+  (RUSTSEC-2024-0421) through `amq-protocol` 1 and `url` 1. `spawn_rabbit_consumer` and
+  `send_and_wait_for_ack` take a `lapin::Channel`; `send_and_wait_for_ack` is now `async`,
+  returns `SendError::Nack` when the broker refuses the message, and `SendError` implements
+  `Debug`, `Display` and `Error`. Errors while declaring queues are logged instead of panicking
+  in a blocking task. `crossbeam-channel` is no longer a dependency of the feature.
+
 ## 0.2.6 - 2026-10-26
 
 ### Added
