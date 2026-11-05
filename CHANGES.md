@@ -24,6 +24,20 @@
   closes. When the actor has stopped, the consumer cancels itself and requeues what it has not
   handed over.
 * `send_and_wait_for_ack` puts the channel into confirm mode only on the first call.
+* `utils::read_bytes::read_parts` - reads every part of a `multipart/form-data` payload with
+  its field name, file name and content type, within `PartLimits`: the number of parts, the
+  size of each part and how much of the rest is read and thrown away once a limit is crossed.
+* `utils::read_bytes::Multipart` re-exported from `actix-multipart`, so handlers do not need
+  their own dependency on it.
+
+### Fixed
+
+* `utils::read_bytes::read_bytes` checks `max_upload_size` while a part streams in and stops
+  keeping the part as soon as it is crossed. It used to buffer the whole part first, so a client
+  could make the server hold any amount of data in memory before the limit was checked. The rest
+  of the payload, up to 16 times `max_upload_size`, is still read and thrown away: browsers do
+  not show a response that arrives before they finish sending, so the client gets the error
+  instead of a broken connection.
 
 ## 0.2.6 - 2026-10-26
 
