@@ -8,9 +8,10 @@ use actix_web::rt::spawn;
 use futures_util::StreamExt;
 use lapin::{
     BasicProperties, Channel, Confirmation,
+    message::Delivery,
     options::{
-        BasicAckOptions, BasicConsumeOptions, BasicPublishOptions, ConfirmSelectOptions,
-        QueueDeclareOptions,
+        BasicAckOptions, BasicCancelOptions, BasicConsumeOptions, BasicNackOptions,
+        BasicPublishOptions, BasicRejectOptions, ConfirmSelectOptions, QueueDeclareOptions,
     },
     types::FieldTable,
 };
@@ -18,11 +19,14 @@ use log::{error, info};
 use serde::{Serialize, de::DeserializeOwned};
 
 /// Declares `consume_queue` (and `publish_queue`, when given) and hands every message from
-/// `consume_queue`, deserialized from JSON, over to `act`. A message is acknowledged once it is
-/// handed over; one that does not deserialize is logged and left unacknowledged.
+/// `consume_queue`, deserialized from JSON, over to `act`, one at a time. A message is
+/// acknowledged once `act` has handled it. One that does not deserialize is logged and rejected
+/// without requeueing, so the broker drops it, or dead-letters it when the queue has a dead
+/// letter exchange.
 ///
-/// The consumer runs in a task on the current actix runtime until the channel closes. Errors
-/// end it and go to the log.
+/// The consumer runs in a task on the current actix runtime until the channel closes or `act`
+/// stops; in the latter case it cancels itself and requeues the messages it has not handed over.
+/// Errors end it and go to the log.
 pub fn spawn_rabbit_consumer<T, A>(
     act: Addr<A>,
     channel: Channel,
@@ -89,11 +93,26 @@ where
             Ok(msg) => msg,
             Err(err) => {
                 error!("Rabbit deserialize error: {err}");
+                let options = BasicRejectOptions { requeue: false };
+                if let Err(err) = delivery.acker.reject(options).await {
+                    error!("Error while delivery reject: {err}");
+                }
                 continue;
             }
         };
 
-        act.do_send(msg);
+        if let Err(err) = act.send(msg).await {
+            error!("Rabbit consumer on {consume_queue}: can't hand the message over: {err}");
+            channel
+                .basic_cancel(consumer.tag(), BasicCancelOptions::default())
+                .await?;
+            requeue(&delivery).await;
+            // What the broker sent before the cancellation, up to the end of the stream.
+            while let Some(Ok(delivery)) = consumer.next().await {
+                requeue(&delivery).await;
+            }
+            break;
+        }
 
         if let Err(err) = delivery.acker.ack(BasicAckOptions::default()).await {
             error!("Error while delivery ack: {err}");
@@ -102,6 +121,16 @@ where
 
     info!("Rabbit consumer on {consume_queue} ended");
     Ok(())
+}
+
+async fn requeue(delivery: &Delivery) {
+    let options = BasicNackOptions {
+        multiple: false,
+        requeue: true,
+    };
+    if let Err(err) = delivery.acker.nack(options).await {
+        error!("Error while delivery nack: {err}");
+    }
 }
 
 /// Why [`send_and_wait_for_ack`] did not deliver the message.
@@ -139,20 +168,23 @@ impl Error for SendError {
     }
 }
 
-/// Publishes `msg` as JSON to the default exchange with `routing_key` and waits until the broker
-/// confirms it.
+/// Publishes `msg` as JSON to the default exchange with `routing_key`, that is to the queue of
+/// that name, and waits until the broker confirms it. The channel is put into confirm mode on the
+/// first call.
 pub async fn send_and_wait_for_ack(
     msg: impl Serialize,
     channel: &Channel,
     routing_key: &str,
 ) -> Result<(), SendError> {
-    channel
-        .confirm_select(ConfirmSelectOptions::default())
-        .await
-        .map_err(|err| {
-            error!("Error while enabling publisher confirms in rabbitmq: {err}");
-            SendError::Channel(err)
-        })?;
+    if !channel.status().confirm() {
+        channel
+            .confirm_select(ConfirmSelectOptions::default())
+            .await
+            .map_err(|err| {
+                error!("Error while enabling publisher confirms in rabbitmq: {err}");
+                SendError::Channel(err)
+            })?;
+    }
 
     let data = serde_json::to_vec(&msg).map_err(SendError::Serde)?;
 
@@ -166,23 +198,23 @@ pub async fn send_and_wait_for_ack(
         )
         .await
         .map_err(|err| {
-            error!("Exchange {routing_key}: Error while publishing message to rabbitmq: {err}");
+            error!("Queue {routing_key}: Error while publishing message to rabbitmq: {err}");
             SendError::Publish(err)
         })?;
 
-    info!("Exchange {routing_key}: Message published, waiting for confirmation...");
+    info!("Queue {routing_key}: Message published, waiting for confirmation...");
 
     match confirm.await {
         Ok(Confirmation::Ack(_) | Confirmation::NotRequested) => {
-            info!("Exchange {routing_key}: Message confirmed");
+            info!("Queue {routing_key}: Message confirmed");
             Ok(())
         }
         Ok(Confirmation::Nack(_)) => {
-            error!("Exchange {routing_key}: Message refused by the broker");
+            error!("Queue {routing_key}: Message refused by the broker");
             Err(SendError::Nack)
         }
         Err(err) => {
-            error!("Exchange {routing_key}: Error while waiting for confirmation: {err}");
+            error!("Queue {routing_key}: Error while waiting for confirmation: {err}");
             Err(SendError::Confirm(err))
         }
     }

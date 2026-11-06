@@ -4661,6 +4661,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serwus-derive",
+ "testcontainers-modules",
  "thiserror 2.0.21",
  "tracing",
  "tracing-actix-web",
