@@ -187,7 +187,7 @@ impl ErrorBuilder {
 
 impl ResponseError for JsonError {
     fn error_response(&self) -> HttpResponse<actix_web::body::BoxBody> {
-        if self.status_code > StatusCode::INTERNAL_SERVER_ERROR {
+        if self.status_code.is_server_error() {
             log::error!("{} (reason: {})", self, self.reason);
         }
         HttpResponse::build(self.status_code)
@@ -256,4 +256,87 @@ pub fn default_error_handler<B: MessageBody + 'static>(
 
     let res = ServiceResponse::new(req, res).map_into_right_body();
     Ok(ErrorHandlerResponse::Response(res))
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::{Mutex, Once, PoisonError};
+
+    use actix_web::{ResponseError, http::StatusCode};
+
+    use super::ErrorBuilder;
+
+    /// Everything logged in this test binary, as `LEVEL message`.
+    static LOGGED: Mutex<Vec<String>> = Mutex::new(Vec::new());
+
+    struct Capture;
+
+    impl log::Log for Capture {
+        fn enabled(&self, _: &log::Metadata<'_>) -> bool {
+            true
+        }
+
+        fn log(&self, record: &log::Record<'_>) {
+            LOGGED
+                .lock()
+                .unwrap_or_else(PoisonError::into_inner)
+                .push(format!("{} {}", record.level(), record.args()));
+        }
+
+        fn flush(&self) {}
+    }
+
+    /// The log is shared by the tests running in parallel, so each one looks only for its own
+    /// reasons.
+    fn logged_with(reason: &str) -> Vec<String> {
+        static INIT: Once = Once::new();
+        INIT.call_once(|| {
+            log::set_logger(&Capture).expect("no other test sets a logger");
+            log::set_max_level(log::LevelFilter::Trace);
+        });
+        LOGGED
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .iter()
+            .filter(|line| line.contains(reason))
+            .cloned()
+            .collect()
+    }
+
+    #[test]
+    fn server_errors_are_logged() {
+        for (status, reason) in [
+            (StatusCode::INTERNAL_SERVER_ERROR, "database is down"),
+            (StatusCode::BAD_GATEWAY, "upstream is down"),
+            (StatusCode::SERVICE_UNAVAILABLE, "pool is exhausted"),
+        ] {
+            logged_with(reason);
+            ErrorBuilder::internal(reason)
+                .status(status)
+                .finish()
+                .error_response();
+            let logged = logged_with(reason);
+            assert_eq!(logged.len(), 1, "{status}: {logged:?}");
+            assert!(logged[0].starts_with("ERROR "), "{status}: {logged:?}");
+        }
+    }
+
+    #[test]
+    fn client_errors_are_not_logged() {
+        for (builder, reason) in [
+            (ErrorBuilder::not_found_msg("no such page"), "no such page"),
+            (
+                ErrorBuilder::bad_request("malformed input"),
+                "malformed input",
+            ),
+            (
+                ErrorBuilder::unauthorized("wrong password"),
+                "wrong password",
+            ),
+        ] {
+            logged_with(reason);
+            builder.finish().error_response();
+            assert_eq!(logged_with(reason), Vec::<String>::new(), "{reason}");
+        }
+    }
 }
