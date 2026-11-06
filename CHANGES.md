@@ -32,6 +32,8 @@
 
 ### Fixed
 
+* `JsonError` logs every server error (5xx). It skipped 500 Internal Server Error itself, so
+  `ErrorBuilder::internal` and `ErrorBuilder::database` errors from handlers never reached the log.
 * `utils::read_bytes::read_bytes` checks `max_upload_size` while a part streams in and stops
   keeping the part as soon as it is crossed. It used to buffer the whole part first, so a client
   could make the server hold any amount of data in memory before the limit was checked. The rest
