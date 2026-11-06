@@ -3,15 +3,27 @@
 <!-- markdownlint-disable-next-line first-line-h1 -->
 ## Unreleased
 
+### Added
+
+* `rabbit_tls` feature - `rabbit` with TLS (rustls) for `amqps://` URIs.
+
 ### Changed
 
-* **Breaking:** the `rabbit` feature uses [`lapin`](https://crates.io/crates/lapin) instead of
+* The `rabbit` feature uses [`lapin`](https://crates.io/crates/lapin) instead of
   `amiquip`, which is no longer maintained and pinned `idna` 0.1.5 with a known vulnerability
   (RUSTSEC-2024-0421) through `amq-protocol` 1 and `url` 1. `spawn_rabbit_consumer` and
   `send_and_wait_for_ack` take a `lapin::Channel`; `send_and_wait_for_ack` is now `async`,
   returns `SendError::Nack` when the broker refuses the message, and `SendError` implements
   `Debug`, `Display` and `Error`. Errors while declaring queues are logged instead of panicking
-  in a blocking task. `crossbeam-channel` is no longer a dependency of the feature.
+  in a blocking task. `crossbeam-channel` is no longer a dependency of the feature. TLS is
+  no longer included, enable `rabbit_tls` for it.
+* `spawn_rabbit_consumer` hands messages over one at a time and acknowledges each only after
+  the actor has handled it, instead of right after queueing it in the actor's mailbox. A
+  message that is not valid JSON is rejected without requeueing (dropped, or dead-lettered if
+  the queue has a dead letter exchange) instead of staying unacknowledged until the channel
+  closes. When the actor has stopped, the consumer cancels itself and requeues what it has not
+  handed over.
+* `send_and_wait_for_ack` puts the channel into confirm mode only on the first call.
 
 ## 0.2.6 - 2026-10-26
 
