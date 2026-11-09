@@ -14,7 +14,7 @@ edition = { workspace = true }
 members = [".", "serwus-derive", "serwus-test"]
 
 [workspace.package]
-version = "0.2.6"
+version = "0.2.7"
 authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
 repository = "https://github.com/sfisol/serwus"
 license = "MIT OR Apache-2.0"
