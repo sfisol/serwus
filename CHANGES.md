@@ -1,45 +1,30 @@
 <!-- markdownlint-configure-file { "no-duplicate-heading": { "siblings_only": true } } -->
 
 <!-- markdownlint-disable-next-line first-line-h1 -->
-## Unreleased
+## 0.2.7 - 2026-11-09
 
 ### Added
 
 * `rabbit_tls` feature - `rabbit` with TLS (rustls) for `amqps://` URIs.
+* `utils::read_bytes::read_parts` - reads every part of a `multipart/form-data` payload with
+  its field name, file name and content type, within `PartLimits`.
+* `utils::read_bytes::Multipart` re-exported from `actix-multipart`.
 
 ### Changed
 
-* The `rabbit` feature uses [`lapin`](https://crates.io/crates/lapin) instead of
-  `amiquip`, which is no longer maintained and pinned `idna` 0.1.5 with a known vulnerability
-  (RUSTSEC-2024-0421) through `amq-protocol` 1 and `url` 1. `spawn_rabbit_consumer` and
-  `send_and_wait_for_ack` take a `lapin::Channel`; `send_and_wait_for_ack` is now `async`,
-  returns `SendError::Nack` when the broker refuses the message, and `SendError` implements
-  `Debug`, `Display` and `Error`. Errors while declaring queues are logged instead of panicking
-  in a blocking task. `crossbeam-channel` is no longer a dependency of the feature. TLS is
-  no longer included, enable `rabbit_tls` for it.
-* `spawn_rabbit_consumer` hands messages over one at a time and acknowledges each only after
-  the actor has handled it, instead of right after queueing it in the actor's mailbox. A
-  message that is not valid JSON is rejected without requeueing (dropped, or dead-lettered if
-  the queue has a dead letter exchange) instead of staying unacknowledged until the channel
-  closes. When the actor has stopped, the consumer cancels itself and requeues what it has not
-  handed over.
-* `send_and_wait_for_ack` puts the channel into confirm mode only on the first call.
-* `utils::read_bytes::read_parts` - reads every part of a `multipart/form-data` payload with
-  its field name, file name and content type, within `PartLimits`: the number of parts, the
-  size of each part and how much of the rest is read and thrown away once a limit is crossed.
-* `utils::read_bytes::Multipart` re-exported from `actix-multipart`, so handlers do not need
-  their own dependency on it.
+* `rabbit` uses `lapin` instead of `amiquip`, dropping `idna` 0.1.5 (RUSTSEC-2024-0421). TLS
+  is now opt-in through `rabbit_tls`.
+* `spawn_rabbit_consumer` and `send_and_wait_for_ack` take a `lapin::Channel`.
+* `send_and_wait_for_ack` is `async` and returns `SendError::Nack` when the broker refuses the
+  message. `SendError` implements `Debug`, `Display` and `Error`.
+* `spawn_rabbit_consumer` acknowledges a message only after the actor has handled it, rejects
+  invalid JSON without requeueing and cancels itself when the actor stops.
 
 ### Fixed
 
-* `JsonError` logs every server error (5xx). It skipped 500 Internal Server Error itself, so
-  `ErrorBuilder::internal` and `ErrorBuilder::database` errors from handlers never reached the log.
-* `utils::read_bytes::read_bytes` checks `max_upload_size` while a part streams in and stops
-  keeping the part as soon as it is crossed. It used to buffer the whole part first, so a client
-  could make the server hold any amount of data in memory before the limit was checked. The rest
-  of the payload, up to 16 times `max_upload_size`, is still read and thrown away: browsers do
-  not show a response that arrives before they finish sending, so the client gets the error
-  instead of a broken connection.
+* `JsonError` didn't log 500 Internal Server Error.
+* `utils::read_bytes::read_bytes` buffered a whole part in memory before checking
+  `max_upload_size`.
 
 ## 0.2.6 - 2026-10-26
 
