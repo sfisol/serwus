@@ -1,6 +1,15 @@
 <!-- markdownlint-configure-file { "no-duplicate-heading": { "siblings_only": true } } -->
 
 <!-- markdownlint-disable-next-line first-line-h1 -->
+## Unreleased
+
+### Added
+
+* `session` feature - `auth::session`: sessions in a cookie. `SessionToken` is an opaque
+  random token with a SHA-256 `hash` for the service to store, and an extractor reading it from
+  the cookie `SessionCookie` (registered with `app_data`) describes. The cookie is `HttpOnly`,
+  `Secure` and `SameSite=Lax`, so server-side rendering sees the session too.
+
 ## 0.2.7 - 2026-11-09
 
 ### Added

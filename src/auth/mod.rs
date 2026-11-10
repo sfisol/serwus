@@ -3,6 +3,9 @@
 #[cfg(feature = "auth")]
 pub mod jwt;
 
+#[cfg(feature = "session")]
+pub mod session;
+
 #[cfg(feature = "auth")]
 pub use crate::containers::role::*;
 

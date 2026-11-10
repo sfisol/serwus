@@ -22,6 +22,8 @@ edition = "2024"
 
 [features]
 auth = ["jsonwebtoken", "thiserror", "rand", "rust-argon2"]
+# Sessions in a cookie: an opaque random token, stored by the service as a hash
+session = ["rand", "sha2"]
 actix_validation = []
 rs256_jwks = ["alcoholic_jwt", "awc", "awc/rustls-0_23-webpki-roots"]
 # Same as `rs256_jwks`, but the JWKS client trusts the operating system certificate
@@ -68,6 +70,7 @@ thiserror = { version = "2", optional = true }
 r2d2 = { version = "0.8", optional = true }
 rand = { version = "0.10", optional = true }
 rust-argon2 = { version = "3", optional = true }
+sha2 = { version = "0.11", optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 validator = "0.21"
