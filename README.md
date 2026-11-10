@@ -14,6 +14,7 @@ Helpers for building actix-web/diesel based services.
 * **MultiPool** - Master/replica-aware wrapper for `r2d2`
 * **StatsPresenter** - Framework for readiness and statistics reporting
 * **JsonError** - Middleware that makes actix-web return errors as JSONs
+* **Session cookie** (`session` feature) - Opaque session token in an `HttpOnly` cookie, stored as a hash
 
 ## Example
 
