@@ -1,6 +1,24 @@
 <!-- markdownlint-configure-file { "no-duplicate-heading": { "siblings_only": true } } -->
 
 <!-- markdownlint-disable-next-line first-line-h1 -->
+## Unreleased
+
+### Added
+
+* `auth_aws_lc_rs` feature - `auth` with the `aws-lc-rs` backend of `jsonwebtoken`. It does not
+  pull in `rsa` (RUSTSEC-2023-0071) and `crypto-bigint` 0.5 (RUSTSEC-2026-0387).
+* `auth_core` feature - `auth` without a `jsonwebtoken` backend, for an application that
+  selects the backend itself.
+* `http2` feature (default) - HTTP/2 in the actix-web server.
+
+### Changed
+
+* `auth` enables `jsonwebtoken/rust_crypto` through the feature list, not through the
+  dependency. With the default features nothing changes.
+* `actix-web` is a dependency without its `http2` feature. With `default-features = false`
+  the server is HTTP/1.1 only and `h2` 0.3 (RUSTSEC-2026-0258) is not compiled. Add `http2`
+  to keep HTTP/2.
+
 ## 0.2.7 - 2026-11-09
 
 ### Added
