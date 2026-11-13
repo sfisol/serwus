@@ -1,11 +1,11 @@
 pub mod email;
 
-#[cfg(feature = "auth")]
+#[cfg(feature = "auth_core")]
 pub mod hash_password;
 
-#[cfg(feature = "auth")]
+#[cfg(feature = "auth_core")]
 mod generate_code;
-#[cfg(feature = "auth")]
+#[cfg(feature = "auth_core")]
 pub use generate_code::generate_code;
 
 #[cfg(feature = "rabbit")]
