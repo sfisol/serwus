@@ -14,7 +14,7 @@ edition = { workspace = true }
 members = [".", "serwus-derive", "serwus-test"]
 
 [workspace.package]
-version = "0.2.7"
+version = "0.2.8"
 authors = ["Michał Pokrywka", "Vlad Ovinnikov"]
 repository = "https://github.com/sfisol/serwus"
 license = "MIT OR Apache-2.0"
@@ -42,7 +42,7 @@ http2 = ["actix-web/http2"]
 pgsql = ["diesel/postgres", "diesel-derive-newtype", "r2d2"]
 multidb = ["weighted-rs"]
 mysql = ["diesel/mysql", "diesel-derive-newtype", "r2d2"]
-openapi_v3 = ["paperclip/v3"]
+openapi_v3 = ["swagger", "paperclip/v3"]
 swagger = ["paperclip"]
 rabbit = ["actix", "lapin", "futures-util"]
 # `rabbit` with TLS, for `amqps://` URIs. Pulls in rustls with `aws-lc-rs`, which needs a C
