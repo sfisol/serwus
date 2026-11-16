@@ -203,7 +203,10 @@ impl<'a> MultiPoolBuilder<'a> {
         builder
     }
 
+    /// Connects to the databases whose URLs are in the environment, `.env` read first
+    /// ([`crate::load_env`]).
     pub fn connect(self) -> Result<MultiPool, InitMultiError> {
+        crate::load_env();
         info!("Connecting to database(s)");
 
         let max_size = if env::var("TEST").is_ok() && self.size > 2 {

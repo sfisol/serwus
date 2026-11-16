@@ -10,7 +10,7 @@ pub type Pool = diesel::r2d2::Pool<ConnectionManager<DbConnection>>;
 
 /// Init pool of N connections to single database, where N is number of threads (but not less than 2).
 ///
-/// Database URL is taken from `DATABASE` env variable.
+/// Database URL is taken from `DATABASE_URL` env variable, `.env` read first ([`crate::load_env`]).
 /// If `TEST` env variable is defined then size is capped to 2.
 pub fn init_default_pool() -> Result<Pool, r2d2::Error> {
     let nthreads = num_threads();
@@ -19,9 +19,10 @@ pub fn init_default_pool() -> Result<Pool, r2d2::Error> {
 
 /// Init pool of `size` connections to single database
 ///
-/// Database URL is taken from `DATABASE` env variable.
+/// Database URL is taken from `DATABASE_URL` env variable, `.env` read first ([`crate::load_env`]).
 /// If `TEST` env variable is defined then size is capped to 2.
 pub fn init_pool(size: usize) -> Result<Pool, r2d2::Error> {
+    crate::load_env();
     info!("Connecting to database");
 
     let manager = ConnectionManager::<DbConnection>::new(default_database_url());

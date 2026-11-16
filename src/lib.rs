@@ -44,6 +44,9 @@
 pub mod containers;
 pub mod utils;
 
+mod env;
+pub use env::load_env;
+
 pub mod auth;
 #[cfg(any(feature = "pgsql", feature = "mysql"))]
 pub mod db_pool;

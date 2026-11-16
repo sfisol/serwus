@@ -5,6 +5,12 @@
 
 ### Added
 
+* `load_env` - reads `.env` into the environment once, without overriding what is set.
+  `Serwus::start` and the database pools call it before they read the environment, so a service
+  which reads its own settings earlier calls it first in `main`, rather than `dotenvy` itself.
+* `Serwus::compress` - compresses the responses of the whole service, the routes of
+  `configure_app` and serwus's own, with what the client accepts (brotli, gzip, zstd), rather
+  than every scope wrapped in `Compress`.
 * `session` feature - `auth::session`: sessions in a cookie. `SessionToken` is an opaque
   random token with a SHA-256 `hash` for the service to store, and an extractor reading it from
   the cookie `SessionCookie` (registered with `app_data`) describes. The cookie is `HttpOnly`,
@@ -17,11 +23,19 @@
 
 ### Changed
 
+* `init_pool`, `init_default_pool` and `MultiPoolBuilder::connect` read `.env` first
+  (`load_env`), as `Serwus::start` did, so `DATABASE_URL` from `.env` reaches a pool made before
+  the server starts.
 * `auth` enables `jsonwebtoken/rust_crypto` through the feature list, not through the
   dependency. With the default features nothing changes.
 * `actix-web` is a dependency without its `http2` feature. With `default-features = false`
   the server is HTTP/1.1 only and `h2` 0.3 (RUSTSEC-2026-0258) is not compiled. Add `http2`
   to keep HTTP/2.
+
+### Fixed
+
+* A second `Serwus::start` in one process, f. ex. in tests, with the `tracing` feature: the
+  subscriber of the first stays, and the second logs it rather than panics, as the logger does.
 
 ## 0.2.7 - 2026-11-09
 

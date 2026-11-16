@@ -1,6 +1,8 @@
 use actix_cors::Cors;
-use actix_web::{App, HttpServer, middleware::ErrorHandlers};
-use dotenvy::dotenv;
+use actix_web::{
+    App, HttpServer,
+    middleware::{Compress, Condition, ErrorHandlers},
+};
 
 #[cfg(not(feature = "swagger"))]
 use actix_web::web;
@@ -29,6 +31,7 @@ pub struct Serwus<'a> {
     #[cfg(feature = "swagger")]
     swagger_spec: DefaultApiRaw,
     json_errors: bool,
+    compress: bool,
 }
 
 impl Default for Serwus<'_> {
@@ -42,6 +45,7 @@ impl Default for Serwus<'_> {
             #[cfg(feature = "swagger")]
             swagger_spec: DefaultApiRaw::default(),
             json_errors: false,
+            compress: false,
         }
     }
 }
@@ -94,6 +98,14 @@ impl<'a> Serwus<'a> {
         self
     }
 
+    /// Compresses the responses of the whole service - the routes of `configure_app` and
+    /// serwus's own - with what the client accepts (`Accept-Encoding`: brotli, gzip, zstd),
+    /// rather than wrapping every scope in `Compress`.
+    pub fn compress(mut self) -> Self {
+        self.compress = true;
+        self
+    }
+
     pub async fn start<D, T, F, C>(
         self,
         prepare_app_data: impl Fn() -> T + Sized,
@@ -106,7 +118,7 @@ impl<'a> Serwus<'a> {
         F: Fn(&mut web::ServiceConfig) + Send + Clone + 'static + Sized,
         C: Fn() -> Cors + Send + Clone + 'static,
     {
-        dotenv().ok();
+        crate::load_env();
 
         #[cfg(feature = "tracing")]
         super::tracing::register_tracing();
@@ -188,7 +200,9 @@ impl<'a> Serwus<'a> {
                     } else {
                         error_handlers
                     }
-                });
+                })
+                // Outside of the error handlers, so their bodies are compressed too
+                .wrap(Condition::new(self.compress, Compress::default()));
 
             #[cfg(feature = "tracing")]
             let app = app.wrap(tracing_actix_web::TracingLogger::<

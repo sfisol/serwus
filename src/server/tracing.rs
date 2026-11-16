@@ -37,9 +37,13 @@ impl RootSpanBuilder for TracingSpanBuilder {
 }
 
 pub fn register_tracing() {
-    tracing_subscriber::registry()
+    let registered = tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new(logger::logger_level()))
         .with(JsonStorageLayer)
         .with(BunyanFormattingLayer::new("serwus".into(), std::io::stdout))
-        .init();
+        .try_init();
+    // A second service in the same process, f. ex. in tests, keeps the first one's
+    if let Err(error) = registered {
+        log::error!("Tracing is registered already: {error}");
+    }
 }
