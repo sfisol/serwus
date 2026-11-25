@@ -13,3 +13,6 @@ reqwest = { version = "0.13", default-features = false }
 testcontainers-modules = { version = "0.15", features = ["postgres", "watchdog"] }
 tokio = { version = "1", features = ["process", "rt", "sync", "time"] }
 tokio-postgres = "0.7"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros"] }

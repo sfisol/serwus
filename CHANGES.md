@@ -1,6 +1,15 @@
 <!-- markdownlint-configure-file { "no-duplicate-heading": { "siblings_only": true } } -->
 
 <!-- markdownlint-disable-next-line first-line-h1 -->
+## Unreleased
+
+### Fixed
+
+* serwus-test - `Postgres::url` points where testcontainers says the container is reached
+  (`get_host`), not always at `127.0.0.1`: tests running in a container next to the Docker
+  socket, f. ex. a CI job, connect through the gateway of the `bridge` network, and with a TCP
+  `DOCKER_HOST` through its host. A local Docker stays at `127.0.0.1`.
+
 ## 0.2.8 - 2026-11-16
 
 ### Breaking

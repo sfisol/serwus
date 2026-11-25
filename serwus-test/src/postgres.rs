@@ -28,7 +28,9 @@ pub struct PgSpec<'a> {
 }
 
 pub struct Postgres {
-    /// `postgres://user:password@127.0.0.1:<port>/db`
+    /// `postgres://user:password@<host>:<port>/db`. `<host>` is `127.0.0.1` with a local Docker,
+    /// the gateway of the `bridge` network when the tests run in a container next to the Docker
+    /// socket (a CI job), and the daemon's host with a TCP `DOCKER_HOST`.
     pub url: String,
     container: Mutex<Option<ContainerAsync<PostgresImage>>>,
 }
@@ -50,11 +52,15 @@ impl Postgres {
             .await
             .context("can't start the Postgres container (is Docker running?)")?;
         let port = container.get_host_port_ipv4(5432).await?;
+        let host = container.get_host().await?.to_string();
 
         Ok(Self {
             url: format!(
-                "postgres://{}:{}@127.0.0.1:{port}/{}",
-                spec.user, spec.password, spec.db
+                "postgres://{}:{}@{}:{port}/{}",
+                spec.user,
+                spec.password,
+                reachable(&host),
+                spec.db
             ),
             container: Mutex::new(Some(container)),
         })
@@ -67,6 +73,17 @@ impl Postgres {
         {
             eprintln!("can't remove the Postgres container: {err}");
         }
+    }
+}
+
+/// Where the tests reach the port Docker published, from where testcontainers says the container
+/// is: `localhost`, a local Docker, becomes `127.0.0.1`, because the port is the one published on
+/// IPv4 and `localhost` may resolve to `::1` first.
+fn reachable(host: &str) -> &str {
+    if host == "localhost" {
+        "127.0.0.1"
+    } else {
+        host
     }
 }
 
@@ -175,5 +192,46 @@ impl Db {
     /// unique.
     pub fn next(&self) -> u32 {
         self.counter.fetch_add(1, Ordering::Relaxed)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_local_docker_is_reached_on_the_ipv4_loopback() {
+        assert_eq!(reachable("localhost"), "127.0.0.1");
+    }
+
+    #[test]
+    fn a_gateway_or_the_host_of_a_remote_docker_stays() {
+        assert_eq!(reachable("172.17.0.1"), "172.17.0.1");
+        assert_eq!(reachable("docker"), "docker");
+        assert_eq!(reachable("[::1]"), "[::1]");
+    }
+
+    /// Run where Docker is, `cargo test -p serwus-test -- --ignored`, also in a container next to
+    /// the Docker socket, as a CI job runs.
+    #[tokio::test]
+    #[ignore = "needs Docker"]
+    async fn the_tests_reach_the_database_they_started() -> Result<()> {
+        let spec = PgSpec {
+            db: "cats",
+            user: "cat",
+            password: "clearly-not-a-dog",
+            image: "postgres:18",
+        };
+        let postgres = Postgres::start(spec, "reach").await?;
+        let answer = async {
+            Db::connect(&postgres.url)
+                .await?
+                .scalar::<String>("SELECT 'meow'", &[])
+                .await
+        }
+        .await;
+        postgres.stop().await;
+        assert_eq!(answer?, "meow");
+        Ok(())
     }
 }
